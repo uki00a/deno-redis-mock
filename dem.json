@@ -9,6 +9,12 @@
         "/testing/asserts.ts",
         "/testing/mod.ts"
       ]
+    },
+    {
+      "protocol": "https",
+      "path": "denopkg.com/keroxp/deno-redis",
+      "version": "v0.5.1",
+      "files": []
     }
   ]
 }
