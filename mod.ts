@@ -45,6 +45,15 @@ export class RedisMock {
     });
   }
 
+  lindex(key: string, index: number): Promise<string> {
+    return this.withListAt(key, list => {
+      const element = index < 0
+        ? list[list.length + index]
+        : list[index];
+      return Promise.resolve(element === undefined ? null : element);
+    });
+  }
+
   lpush(key, ...values): Promise<number> {
     return this.withListAt(key, list => {
       list.splice(0, 0, ...values.reverse());

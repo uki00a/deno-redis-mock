@@ -28,6 +28,19 @@ test(async function sismember() {
   assertStrictEq(await redis.sismember('piyo', 'hoge'), 0);
 });
 
+test(async function lindex() {
+  const redis = new RedisMock();
+
+  await redis.lpush('test-list', 'D', 'C', 'B', 'A');
+
+  assertStrictEq(await redis.lindex('test-list', 0), 'A');
+  assertStrictEq(await redis.lindex('test-list', 2), 'C');
+  assertStrictEq(await redis.lindex('test-list', -1), 'D');
+  assertStrictEq(await redis.lindex('test-list', -3), 'B');
+  assertStrictEq(await redis.lindex('test-list', 4), null);
+  assertStrictEq(await redis.lindex('test-list', -5), null);
+});
+
 test(async function lpush() {
   const redis = new RedisMock();
 

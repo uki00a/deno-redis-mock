@@ -47,7 +47,7 @@
 - [ ] MSET
 - [ ] MSETNX
 - [ ] PSETEX
-- [x] SET
+- [ ] SET
 - [ ] SETBIT
 - [ ] SETEX
 - [ ] SETNX
@@ -56,7 +56,7 @@
 - [ ] BLPOP
 - [ ] BRPOP
 - [ ] BRPOPLPUSH
-- [ ] LINDEX
+- [x] LINDEX
 - [ ] LINSERT
 - [x] LLEN
 - [x] LPOP
