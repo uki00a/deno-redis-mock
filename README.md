@@ -68,7 +68,7 @@
 - [ ] LTRIM
 - [ ] RPOP
 - [ ] RPOPLPUSH
-- [ ] RPUSH
+- [x] RPUSH
 - [ ] RPUSHX
 - [x] SADD
 - [ ] SCARD

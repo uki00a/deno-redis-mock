@@ -48,6 +48,15 @@ test(async function lpush() {
   assertStrictEq(await redis.lpush('test-list', 'b', 'c'), 3);
 });
 
+test(async function rpush() {
+  {
+    const redis = new RedisMock();
+
+    assertStrictEq(await redis.rpush('test-list', 'one'), 1);
+    assertStrictEq(await redis.rpush('test-list', 'two', 'three'), 3);
+  }
+});
+
 test(async function lpop() {
   const redis = new RedisMock();
 

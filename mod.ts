@@ -60,6 +60,13 @@ export class RedisMock {
     });
   }
 
+  rpush(key: string, ...values: string[]): Promise<number> {
+    return this.withListAt(key, list => {
+      list.push(...values);
+      return Promise.resolve(list.length);
+    });
+  }
+
   lpop(key: string): Promise<string> {
     return this.withListAt(key, list => Promise.resolve(list.shift()));
   }
@@ -96,6 +103,10 @@ export class RedisMock {
 }
 
 class RedisMockError extends Error {}
+
+function isList(v: RedisValue): v is Array<string> {
+  return Array.isArray(v);
+}
 
 function isString(v: RedisValue): v is string {
   return typeof v === 'string';
