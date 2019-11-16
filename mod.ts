@@ -39,7 +39,6 @@ export class RedisMock {
   }
 
   sismember(key: string, member: string): Promise<number> {
-    const set = this.data[key];
     return this.withSetAt(key, set => {
       return Promise.resolve(set.has(member) ? 1 : 0);
     });
