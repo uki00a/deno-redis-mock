@@ -1,5 +1,5 @@
 import { runIfMain, test } from './vendor/https/deno.land/std/testing/mod.ts';
-import { assertStrictEq, assertArrayContains } from './vendor/https/deno.land/std/testing/asserts.ts';
+import { assertStrictEq, assertArrayContains, assertEquals } from './vendor/https/deno.land/std/testing/asserts.ts';
 import { RedisMock } from './mod.ts';
 
 test(async function get() {
@@ -39,6 +39,19 @@ test(async function lindex() {
   assertStrictEq(await redis.lindex('test-list', -3), 'B');
   assertStrictEq(await redis.lindex('test-list', 4), null);
   assertStrictEq(await redis.lindex('test-list', -5), null);
+});
+
+test(async function lrange() {
+  const redis = new RedisMock();
+
+  await redis.rpush('mylist', 'one');
+  await redis.rpush('mylist', 'two');
+  await redis.rpush('mylist', 'three');
+
+  assertEquals(await redis.lrange('mylist', 0, 0), ['one']);
+  assertEquals(await redis.lrange('mylist', -3, 2), ['one', 'two', 'three']);
+  assertEquals(await redis.lrange('mylist', -100, 100), ['one', 'two', 'three']);
+  assertEquals(await redis.lrange('mylist', 5, 10), []);
 });
 
 test(async function lpush() {

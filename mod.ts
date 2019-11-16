@@ -75,6 +75,14 @@ export class RedisMock {
     return this.withListAt(key, list => Promise.resolve(list.length));
   }
 
+  lrange(key: string, start: number, stop: number): Promise<string[]> {
+    return this.withListAt(key, list => {
+      const from = start < 0 ? list.length + start : start;
+      const to = stop < 0 ? list.length + stop : stop;
+      return Promise.resolve(list.slice(from, to + 1));
+    });
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data[key];
     if (isSet(maybeSet)) {
