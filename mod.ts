@@ -6,25 +6,22 @@ type Data = {
   [key: string]: RedisValue;
 };
 
-type RedisValue = (
-  string |
-  Set<string> |
-  Array<string>
-);
+type RedisValue = string | Set<string> | Array<string>;
 
 export class RedisMock {
-  private readonly data: Data;
+  private readonly data: Map<string, RedisValue>;
 
   constructor(options?: RedisMockOptions) {
-    const {
-      data = {}
-    } = options || {};
+    const { data = {} } = options || {};
 
-    this.data = data;
+    this.data = Object.keys(data).reduce((map, key) => {
+      map.set(key, data[key]);
+      return map;
+    }, new Map<string, RedisValue>());
   }
 
   get(key: string): Promise<string> {
-    const s = this.data[key];
+    const s = this.data.get(key);
     if (isString(s)) {
       return Promise.resolve(s);
     }
@@ -46,9 +43,7 @@ export class RedisMock {
 
   lindex(key: string, index: number): Promise<string> {
     return this.withListAt(key, list => {
-      const element = index < 0
-        ? list[list.length + index]
-        : list[index];
+      const element = index < 0 ? list[list.length + index] : list[index];
       return Promise.resolve(element === undefined ? null : element);
     });
   }
@@ -84,28 +79,28 @@ export class RedisMock {
   }
 
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
-    const maybeSet = this.data[key];
+    const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {
       return proc(maybeSet);
     } else if (maybeSet == null) {
       const set = new Set<string>();
-      this.data[key] = set;
+      this.data.set(key, set);
       return proc(set);
     } else {
-      throw new RedisMockError('Invalid type');
+      throw new RedisMockError("Invalid type");
     }
   }
 
   private withListAt<T>(key: string, proc: (list: Array<string>) => T): T {
-    const maybeList = this.data[key];
+    const maybeList = this.data.get(key);
     if (Array.isArray(maybeList)) {
       return proc(maybeList);
     } else if (maybeList == null) {
       const list: Array<string> = [];
-      this.data[key] = list;
+      this.data.set(key, list);
       return proc(list);
     } else {
-      throw new RedisMockError('Invalid type');
+      throw new RedisMockError("Invalid type");
     }
   }
 }
