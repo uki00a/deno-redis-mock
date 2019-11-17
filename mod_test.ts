@@ -9,10 +9,14 @@ test(async function get() {
     }
   });
 
-  const actual = await redis.get('test');
-  const expected = 'hello';
-
-  assertStrictEq(actual, expected);
+  for (const tc of [
+    { given: 'test', expected: 'hello' },
+    { given: 'non_existing_key', expected: undefined }
+  ]) {
+    const { given, expected } = tc;
+    const actual = await redis.get(given);
+    assertStrictEq(actual, expected);
+  }
 });
 
 test(async function sismember() {
