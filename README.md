@@ -57,7 +57,7 @@
 - [ ] BRPOP
 - [ ] BRPOPLPUSH
 - [x] LINDEX
-- [ ] LINSERT
+- [x] LINSERT
 - [x] LLEN
 - [x] LPOP
 - [x] LPUSH

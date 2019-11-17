@@ -48,6 +48,28 @@ export class RedisMock {
     });
   }
 
+  linsert(
+    key: string,
+    loc: "BEFORE" | "AFTER",
+    pivot: string,
+    value: string
+  ): Promise<number> {
+    return this.withListAt(key, list => {
+      const index = list.indexOf(pivot);
+      if (index === -1) {
+        return Promise.resolve(-1);
+      }
+
+      if (loc === 'BEFORE') {
+        list.splice(index, 0, value);
+      } else {
+        list.splice(index + 1, 0, value);
+      }
+
+      return Promise.resolve(list.length);
+    });
+  }
+
   lpush(key, ...values): Promise<number> {
     return this.withListAt(key, list => {
       list.splice(0, 0, ...values.reverse());

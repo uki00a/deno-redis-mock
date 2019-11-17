@@ -220,4 +220,48 @@ test(async function ltrim() {
   }
 });
 
+test(async function linsert() {
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'Hello');
+    await redis.rpush('mylist', 'World');
+    assertStrictEq(await redis.linsert('mylist', 'BEFORE', 'World', 'There'), 3);
+    assertEquals(await redis.lrange('mylist', 0, -1), ['Hello', 'There', 'World']);
+  }
+
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.rpush('mylist', 'two');
+    assertStrictEq(await redis.linsert('mylist', 'BEFORE', 'one', 'zero'), 3);
+    assertEquals(await redis.lrange('mylist', 0, -1), ['zero', 'one', 'two']);
+  }
+
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.rpush('mylist', 'two');
+    assertStrictEq(await redis.linsert('mylist', 'AFTER', 'two', 'three'), 3);
+    assertEquals(await redis.lrange('mylist', 0, -1), ['one', 'two', 'three']);
+  }
+
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.rpush('mylist', 'two');
+    await redis.rpush('mylist', 'two');
+    assertStrictEq(await redis.linsert('mylist', 'AFTER', 'two', 'three'), 4);
+    assertEquals(await redis.lrange('mylist', 0, -1), ['one', 'two', 'three', 'two']);
+  }
+
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.rpush('mylist', 'two');
+    assertStrictEq(await redis.linsert('mylist', 'BEFORE', 'four', 'three'), -1);
+    assertStrictEq(await redis.linsert('mylist', 'AFTER', 'three', 'four'), -1);
+    assertEquals(await redis.lrange('mylist', 0, -1), ['one', 'two']);
+  }
+});
+
 runIfMain(import.meta);
