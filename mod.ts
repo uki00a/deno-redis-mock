@@ -66,6 +66,27 @@ export class RedisMock {
     return this.withListAt(key, list => Promise.resolve(list.shift()));
   }
 
+  lrem(key: string, count: number, value: string): Promise<number> {
+    if (!this.data.has(key)) {
+      return Promise.resolve(0);
+    }
+
+    return this.withListAt(key, list => {
+      const max = count === 0 ? list.length : Math.abs(count);
+      const fromTail = count < 0;
+
+      let numRemoved = 0;
+      let index = list.indexOf(value);
+      while (numRemoved < max && index > -1) {
+        list.splice(index, 1);
+        index = fromTail ? list.lastIndexOf(value) : list.indexOf(value);
+        ++numRemoved;
+      }
+
+      return Promise.resolve(numRemoved);
+    });
+  }
+
   llen(key: string): Promise<number> {
     return this.withListAt(key, list => Promise.resolve(list.length));
   }

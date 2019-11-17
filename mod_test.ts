@@ -84,6 +84,50 @@ test(async function lpop() {
   assertStrictEq(await redis.llen('test-list'), 1);
 });
 
+test(async function lrem() {
+  for (const tc of [
+    {
+      expected: {
+        list: ['hello', 'foo'],
+        numRemoved: 2,
+      },
+      given: {
+        count: -2,
+        element: 'hello'
+      }
+    },
+    {
+      expected: {
+        list: ['foo', 'hello'],
+        numRemoved: 2
+      },
+      given: {
+        count: 2,
+        element: 'hello'
+      }
+    },
+    {
+      expected: {
+        list: ['foo'],
+        numRemoved: 3
+      },
+      given: {
+        count: 0,
+        element: 'hello'
+      }
+    }
+  ]) {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'hello');
+    await redis.rpush('mylist', 'hello');
+    await redis.rpush('mylist', 'foo');
+    await redis.rpush('mylist', 'hello');
+
+    assertStrictEq(await redis.lrem('mylist', tc.given.count, tc.given.element), tc.expected.numRemoved);
+    assertEquals(await redis.lrange('mylist', 0, -1), tc.expected.list);
+  }
+});
+
 test(async function llen() {
   const redis = new RedisMock();
 
