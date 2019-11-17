@@ -203,7 +203,7 @@ test(async function ltrim() {
     {
       given: { start: 3, stop: 5 },
       expected: [],
-      should: 'an empty array if indexes are out of range'
+      should: 'return an empty array if indexes are out of range'
     }
   ]) {
     const redis = new RedisMock();
