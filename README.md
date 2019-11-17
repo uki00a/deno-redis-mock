@@ -65,7 +65,7 @@
 - [x] LRANGE
 - [x] LREM
 - [x] LSET
-- [ ] LTRIM
+- [x] LTRIM
 - [ ] RPOP
 - [ ] RPOPLPUSH
 - [x] RPUSH

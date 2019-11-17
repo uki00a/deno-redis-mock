@@ -178,4 +178,46 @@ test(async function llen() {
   assertStrictEq(await redis.llen('test-list'), 3);
 });
 
+test(async function ltrim() {
+  for (const tc of [
+    {
+      given: { start: 0, stop: 0 },
+      expected: ['one'],
+      should: 'return a trimmed array'
+    },
+    {
+      given: { start: 0, stop: 1 },
+      expected: ['one', 'two'],
+      should: 'return a trimmed array'
+    },
+    {
+      given: { start: 1, stop: -1 },
+      expected: ['two', 'three'],
+      should: 'return a trimmed array'
+    },
+    {
+      given: { start: 2, stop: 1 },
+      expected: [],
+      should: 'return an empty array if `stop` is greater than `start`'
+    },
+    {
+      given: { start: 3, stop: 5 },
+      expected: [],
+      should: 'an empty array if indexes are out of range'
+    }
+  ]) {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.rpush('mylist', 'two');
+    await redis.rpush('mylist', 'three');
+
+    assertStrictEq(await redis.ltrim('mylist', tc.given.start, tc.given.stop), 'OK');
+
+    const actual = await redis.lrange('mylist', 0, -1);
+    const msg = `Given ${tc.given.start} and ${tc.given.stop}: should ${tc.should}`;
+
+    assertEquals(actual, tc.expected, msg);
+  }
+});
+
 runIfMain(import.meta);

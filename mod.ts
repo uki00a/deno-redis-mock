@@ -110,6 +110,16 @@ export class RedisMock {
     });
   }
 
+  ltrim(key: string, start: number, stop: number): Promise<string> {
+    return this.withListAt(key, list => {
+      const from = start < 0 ? list.length + start : start;
+      const to = stop < 0 ? list.length + stop : stop;
+      list.splice(0, from);
+      list.length = to - from + 1;
+      return Promise.resolve('OK');
+    });
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {
