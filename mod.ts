@@ -87,6 +87,17 @@ export class RedisMock {
     });
   }
 
+  lset(key: string, index: number, value: string): Promise<string> {
+    return this.withListAt(key, list => {
+      const normalizedIndex = index < 0 ? list.length + index : index;
+      if (normalizedIndex < 0 || normalizedIndex >= list.length) {
+        return Promise.reject(new RedisMockError('index out of range'));
+      }
+      list[normalizedIndex] = value;
+      return Promise.resolve('OK');
+    });
+  }
+
   llen(key: string): Promise<number> {
     return this.withListAt(key, list => Promise.resolve(list.length));
   }
@@ -126,7 +137,7 @@ export class RedisMock {
   }
 }
 
-class RedisMockError extends Error {}
+export class RedisMockError extends Error {}
 
 function isList(v: RedisValue): v is Array<string> {
   return Array.isArray(v);

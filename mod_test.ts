@@ -1,6 +1,6 @@
 import { runIfMain, test } from './vendor/https/deno.land/std/testing/mod.ts';
-import { assertStrictEq, assertArrayContains, assertEquals } from './vendor/https/deno.land/std/testing/asserts.ts';
-import { RedisMock } from './mod.ts';
+import { assertStrictEq, assertArrayContains, assertEquals, assertThrowsAsync } from './vendor/https/deno.land/std/testing/asserts.ts';
+import { RedisMock, RedisMockError } from './mod.ts';
 
 test(async function get() {
   const redis = new RedisMock({
@@ -125,6 +125,46 @@ test(async function lrem() {
 
     assertStrictEq(await redis.lrem('mylist', tc.given.count, tc.given.element), tc.expected.numRemoved);
     assertEquals(await redis.lrange('mylist', 0, -1), tc.expected.list);
+  }
+});
+
+test(async function lset() {
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.rpush('mylist', 'two');
+    await redis.rpush('mylist', 'three');
+
+    assertStrictEq(await redis.lset('mylist', 0, 'four'), 'OK');
+    assertStrictEq(await redis.lset('mylist', -2, 'five'), 'OK');
+    assertEquals(await redis.lrange('mylist', 0, -1), [
+      'four',
+      'five',
+      'three',
+    ]);
+  }
+
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.rpush('mylist', 'two');
+    await redis.rpush('mylist', 'three');
+
+    await assertThrowsAsync(
+      async () => {
+        await redis.lset('mylist', 3, 'four');
+      },
+      RedisMockError,
+      'index out of range'
+    );
+
+    await assertThrowsAsync(
+      async () => {
+        await redis.lset('mylist', -4, 'zero');
+      },
+      RedisMockError,
+      'index out of range'
+    );
   }
 });
 
