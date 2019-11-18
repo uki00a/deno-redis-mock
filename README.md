@@ -7,7 +7,7 @@
 - [ ] SWAPDB
 - [ ] DEL
 - [ ] DUMP
-- [ ] EXISTS
+- [x] EXISTS
 - [ ] EXPIRE
 - [ ] EXPIREAT
 - [ ] KEYS

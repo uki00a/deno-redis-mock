@@ -20,6 +20,10 @@ export class RedisMock {
     }, new Map<string, RedisValue>());
   }
 
+  exists(...keys: string[]): Promise<number> {
+    return Promise.resolve(keys.filter(key => this.data.has(key)).length);
+  }
+
   get(key: string): Promise<string> {
     const s = this.data.get(key);
     if (isString(s)) {
