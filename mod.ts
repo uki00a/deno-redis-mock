@@ -113,7 +113,7 @@ export class RedisMock {
     return this.withListAt(key, list => {
       const normalizedIndex = index < 0 ? list.length + index : index;
       if (normalizedIndex < 0 || normalizedIndex >= list.length) {
-        return Promise.reject(new RedisMockError('index out of range'));
+        return Promise.reject(new IndexOutOfRangeError('index out of range'));
       }
       list[normalizedIndex] = value;
       return Promise.resolve('OK');
@@ -151,7 +151,7 @@ export class RedisMock {
       this.data.set(key, set);
       return proc(set);
     } else {
-      throw new RedisMockError("Invalid type");
+      throw new WrongTypeOperationError("Invalid type");
     }
   }
 
@@ -164,12 +164,13 @@ export class RedisMock {
       this.data.set(key, list);
       return proc(list);
     } else {
-      throw new RedisMockError("Invalid type");
+      throw new WrongTypeOperationError("Invalid type");
     }
   }
 }
 
-export class RedisMockError extends Error {}
+export class WrongTypeOperationError extends Error {}
+export class IndexOutOfRangeError extends Error {}
 
 function isList(v: RedisValue): v is Array<string> {
   return Array.isArray(v);

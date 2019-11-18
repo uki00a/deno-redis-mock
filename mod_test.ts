@@ -1,6 +1,6 @@
 import { runIfMain, test } from './vendor/https/deno.land/std/testing/mod.ts';
 import { assertStrictEq, assertArrayContains, assertEquals, assertThrowsAsync } from './vendor/https/deno.land/std/testing/asserts.ts';
-import { RedisMock, RedisMockError } from './mod.ts';
+import { RedisMock, IndexOutOfRangeError } from './mod.ts';
 
 test(async function get() {
   const redis = new RedisMock({
@@ -154,7 +154,7 @@ test(async function lset() {
       async () => {
         await redis.lset('mylist', 3, 'four');
       },
-      RedisMockError,
+      IndexOutOfRangeError,
       'index out of range'
     );
 
@@ -162,7 +162,7 @@ test(async function lset() {
       async () => {
         await redis.lset('mylist', -4, 'zero');
       },
-      RedisMockError,
+      IndexOutOfRangeError,
       'index out of range'
     );
   }
