@@ -69,6 +69,9 @@ test(async function lrange() {
   assertEquals(await redis.lrange('mylist', -3, 2), ['one', 'two', 'three']);
   assertEquals(await redis.lrange('mylist', -100, 100), ['one', 'two', 'three']);
   assertEquals(await redis.lrange('mylist', 5, 10), []);
+
+  assertEquals(await redis.lrange('non_existing_key', 0, -1), []);
+  assertStrictEq(await redis.exists('non_existing_key'), 0, '\'LRANGE\' should not create a new key if not exists');
 });
 
 test(async function lpush() {

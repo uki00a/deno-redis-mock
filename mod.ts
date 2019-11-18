@@ -136,6 +136,10 @@ export class RedisMock {
   }
 
   lrange(key: string, start: number, stop: number): Promise<string[]> {
+    if (!this.data.has(key)) {
+      return Promise.resolve([]);
+    }
+
     return this.withListAt(key, list => {
       const from = start < 0 ? list.length + start : start;
       const to = stop < 0 ? list.length + stop : stop;
