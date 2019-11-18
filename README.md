@@ -61,7 +61,7 @@
 - [x] LLEN
 - [x] LPOP
 - [x] LPUSH
-- [ ] LPUSHX
+- [x] LPUSHX
 - [x] LRANGE
 - [x] LREM
 - [x] LSET

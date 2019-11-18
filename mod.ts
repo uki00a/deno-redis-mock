@@ -81,6 +81,13 @@ export class RedisMock {
     });
   }
 
+  lpushx(key: string, value: string): Promise<number> {
+    if (!this.data.has(key)) {
+      return Promise.resolve(0);
+    }
+    return this.lpush(key, value);
+  }
+
   rpush(key: string, ...values: string[]): Promise<number> {
     return this.withListAt(key, list => {
       list.push(...values);

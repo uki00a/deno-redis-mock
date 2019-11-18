@@ -78,6 +78,21 @@ test(async function lpush() {
   assertStrictEq(await redis.lpush('test-list', 'b', 'c'), 3);
 });
 
+test(async function lpushx() {
+  const redis = new RedisMock();
+  await redis.lpush('mylist', 'World');
+  assertStrictEq(await redis.lpushx('mylist', 'Hello'), 2);
+  assertStrictEq(await redis.lpushx('myotherlist', 'Hello'), 0);
+
+  assertEquals(await redis.lrange('mylist', 0, -1), ['Hello', 'World']);
+
+  assertStrictEq(
+    await redis.exists('myotherlist'),
+    0,
+    '\'LPUSHX\' should not create a new key'
+  );
+});
+
 test(async function rpush() {
   {
     const redis = new RedisMock();
