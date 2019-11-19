@@ -95,6 +95,13 @@ export class RedisMock {
     });
   }
 
+  rpushx(key: string, value: string): Promise<number> {
+    if (!this.data.has(key)) {
+      return Promise.resolve(0);
+    }
+    return this.rpush(key, value);
+  }
+
   lpop(key: string): Promise<string> {
     if (!this.data.has(key)) {
       return Promise.resolve(undefined);

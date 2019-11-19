@@ -62,6 +62,19 @@ test(async function rpush() {
   }
 });
 
+test(async function rpushx() {
+  const redis = new RedisMock();
+
+  await redis.rpush('mylist', 'one');
+
+  assertStrictEq(await redis.rpushx('mylist', 'two'), 2);
+  assertStrictEq(await redis.rpushx('mylist', 'three'), 3);
+  assertStrictEq(await redis.rpushx('myotherlist', 'one'), 0);
+
+  assertEquals(await redis.lrange('mylist', 0, -1), ['one', 'two', 'three']);
+  assertStrictEq(await redis.exists('myotherlist'), 0);
+});
+
 test(async function lpop() {
   const redis = new RedisMock();
 

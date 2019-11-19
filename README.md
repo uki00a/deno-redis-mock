@@ -69,7 +69,7 @@
 - [x] RPOP
 - [ ] RPOPLPUSH
 - [x] RPUSH
-- [ ] RPUSHX
+- [x] RPUSHX
 - [x] SADD
 - [ ] SCARD
 - [ ] SDIFF
