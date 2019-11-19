@@ -76,7 +76,7 @@ test(async function lpop() {
   {
     await redis.rpush('myotherlist', 'one');
     assertStrictEq(await redis.lpop('myotherlist'), 'one');
-    assertStrictEq(await redis.exists('myotherlist'), 0);
+    assertStrictEq(await redis.exists('myotherlist'), 0, 'should remove a key if a list was singleton');
   }
 
   {
@@ -99,7 +99,7 @@ test(async function rpop() {
   {
     await redis.rpush('myotherlist', 'one');
     assertStrictEq(await redis.rpop('myotherlist'), 'one');
-    assertStrictEq(await redis.exists('myotherlist'), 0);
+    assertStrictEq(await redis.exists('myotherlist'), 0, 'should remove a key if a list was singleton');
   }
 
   {
