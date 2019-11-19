@@ -99,14 +99,26 @@ export class RedisMock {
     if (!this.data.has(key)) {
       return Promise.resolve(undefined);
     }
-    return this.withListAt(key, list => Promise.resolve(list.shift()));
+    return this.withListAt(key, list => {
+      const element = list.shift();
+      if (list.length === 0) {
+        this.data.delete(key);
+      }
+      return Promise.resolve(element)
+    });
   }
 
   rpop(key: string): Promise<string> {
     if (!this.data.has(key)) {
       return Promise.resolve(undefined);
     }
-    return this.withListAt(key, list => Promise.resolve(list.pop()));
+    return this.withListAt(key, list => {
+      const element = list.pop();
+      if (list.length === 0) {
+        this.data.delete(key);
+      }
+      return Promise.resolve(element);
+    });
   }
 
   lrem(key: string, count: number, value: string): Promise<number> {

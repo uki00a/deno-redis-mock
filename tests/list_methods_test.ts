@@ -74,6 +74,12 @@ test(async function lpop() {
   }
 
   {
+    await redis.rpush('myotherlist', 'one');
+    assertStrictEq(await redis.lpop('myotherlist'), 'one');
+    assertStrictEq(await redis.exists('myotherlist'), 0);
+  }
+
+  {
     assertStrictEq(await redis.lpop('nosuchkey'), undefined);
     assertStrictEq(await redis.exists('nosuchkey'), 0, 'should not create a new key if not exists');
   }
@@ -87,7 +93,13 @@ test(async function rpop() {
     await redis.rpush('mylist', 'two');
     await redis.rpush('mylist', 'three');
     assertStrictEq(await redis.rpop('mylist'), 'three');
-    assertEquals(await redis.lrange('mylist', 0, -1), ['one', 'two']);
+    assertEquals(await redis.lrange('mylist', 0, -1), ['one', 'two'], 'should remove a key if a last element is popped');
+  }
+
+  {
+    await redis.rpush('myotherlist', 'one');
+    assertStrictEq(await redis.rpop('myotherlist'), 'one');
+    assertStrictEq(await redis.exists('myotherlist'), 0);
   }
 
   {
