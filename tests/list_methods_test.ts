@@ -65,11 +65,18 @@ test(async function rpush() {
 test(async function lpop() {
   const redis = new RedisMock();
 
-  await redis.lpush('test-list', '100');
-  await redis.lpush('test-list', '200');
+  {
+    await redis.lpush('test-list', '100');
+    await redis.lpush('test-list', '200');
 
-  assertStrictEq(await redis.lpop('test-list'), '200');
-  assertStrictEq(await redis.llen('test-list'), 1);
+    assertStrictEq(await redis.lpop('test-list'), '200');
+    assertStrictEq(await redis.llen('test-list'), 1);
+  }
+
+  {
+    assertStrictEq(await redis.lpop('nosuchkey'), undefined);
+    assertStrictEq(await redis.exists('nosuchkey'), 0, 'should not create a new key if not exists');
+  }
 });
 
 test(async function rpop() {

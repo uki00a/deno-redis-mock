@@ -96,6 +96,9 @@ export class RedisMock {
   }
 
   lpop(key: string): Promise<string> {
+    if (!this.data.has(key)) {
+      return Promise.resolve(undefined);
+    }
     return this.withListAt(key, list => Promise.resolve(list.shift()));
   }
 
