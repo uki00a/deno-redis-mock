@@ -138,6 +138,10 @@ export class RedisMock {
         ++numRemoved;
       }
 
+      if (list.length === 0) {
+        this.data.delete(key);
+      }
+
       return Promise.resolve(numRemoved);
     });
   }

@@ -150,6 +150,16 @@ test(async function lrem() {
     assertStrictEq(await redis.lrem('mylist', tc.given.count, tc.given.element), tc.expected.numRemoved);
     assertEquals(await redis.lrange('mylist', 0, -1), tc.expected.list);
   }
+
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.rpush('mylist', 'one');
+
+    await redis.lrem('mylist', 2, 'one');
+
+    assertStrictEq(await redis.exists('mylist'), 0, 'should remove a key if no elements remain');
+  }
 });
 
 test(async function lset() {
