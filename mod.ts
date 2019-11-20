@@ -8,6 +8,8 @@ type Data = {
 
 type RedisValue = string | Set<string> | Array<string>;
 
+const NIL = undefined;
+
 export class RedisMock {
   private readonly data: Map<string, RedisValue>;
 
@@ -48,7 +50,7 @@ export class RedisMock {
   lindex(key: string, index: number): Promise<string> {
     return this.withListAt(key, list => {
       const element = index < 0 ? list[list.length + index] : list[index];
-      return Promise.resolve(element === undefined ? undefined : element);
+      return Promise.resolve(element === undefined ? NIL : element);
     });
   }
 
@@ -101,7 +103,7 @@ export class RedisMock {
 
   lpop(key: string): Promise<string> {
     if (!this.data.has(key)) {
-      return Promise.resolve(undefined);
+      return Promise.resolve(NIL);
     }
     return this.withListAt(key, list => {
       const element = list.shift();
@@ -118,7 +120,7 @@ export class RedisMock {
 
   rpoplpush(source: string, destination: string): Promise<string> {
     if (!this.data.has(source)) {
-      return Promise.resolve(undefined);
+      return Promise.resolve(NIL);
     }
     const toPush = this.rpopSync(source);
     this.lpushSync(destination, toPush);
@@ -215,7 +217,7 @@ export class RedisMock {
 
   private rpopSync(key: string): string {
     if (!this.data.has(key)) {
-      return undefined;
+      return NIL;
     }
     return this.withListAt(key, list => {
       const element = list.pop();
