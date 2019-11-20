@@ -48,7 +48,7 @@ export class RedisMock {
   lindex(key: string, index: number): Promise<string> {
     return this.withListAt(key, list => {
       const element = index < 0 ? list[list.length + index] : list[index];
-      return Promise.resolve(element === undefined ? null : element);
+      return Promise.resolve(element === undefined ? undefined : element);
     });
   }
 

@@ -11,8 +11,8 @@ test(async function lindex() {
   assertStrictEq(await redis.lindex('test-list', 2), 'C');
   assertStrictEq(await redis.lindex('test-list', -1), 'D');
   assertStrictEq(await redis.lindex('test-list', -3), 'B');
-  assertStrictEq(await redis.lindex('test-list', 4), null);
-  assertStrictEq(await redis.lindex('test-list', -5), null);
+  assertStrictEq(await redis.lindex('test-list', 4), undefined);
+  assertStrictEq(await redis.lindex('test-list', -5), undefined);
 });
 
 test(async function lrange() {
