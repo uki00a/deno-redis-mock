@@ -121,6 +121,41 @@ test(async function rpop() {
   }
 });
 
+test(async function rpoplpush() {
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.rpush('mylist', 'two');
+    await redis.rpush('mylist', 'three');
+
+    assertStrictEq(await redis.rpoplpush('mylist', 'myotherlist'), 'three');
+
+    assertEquals(await redis.lrange('mylist', 0, -1), ["one", "two"]);
+    assertEquals(await redis.lrange('myotherlist', 0, -1), ['three']);
+  }
+
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.rpush('myotherlist', '1');
+
+    assertStrictEq(await redis.rpoplpush('mylist', 'myotherlist'), 'one');
+
+    assertStrictEq(await redis.exists('mylist'), 0, 'should delete a source list');
+    assertEquals(await redis.lrange('myotherlist', 0, -1), ['one', '1']);
+  }
+
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+
+    assertStrictEq(await redis.rpoplpush('nosuchkey', 'mylist'), undefined);
+
+    assertStrictEq(await redis.exists('nosuchkey'), 0);
+    assertEquals(await redis.lrange('mylist', 0, -1), ['one']);
+  }
+});
+
 test(async function lrem() {
   for (const tc of [
     {

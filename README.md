@@ -67,7 +67,7 @@
 - [x] LSET
 - [x] LTRIM
 - [x] RPOP
-- [ ] RPOPLPUSH
+- [x] RPOPLPUSH
 - [x] RPUSH
 - [x] RPUSHX
 - [x] SADD

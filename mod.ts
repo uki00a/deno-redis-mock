@@ -75,10 +75,7 @@ export class RedisMock {
   }
 
   lpush(key, ...values): Promise<number> {
-    return this.withListAt(key, list => {
-      list.splice(0, 0, ...values.reverse());
-      return Promise.resolve(list.length);
-    });
+    return Promise.resolve(this.lpushSync(key, ...values));
   }
 
   lpushx(key: string, value: string): Promise<number> {
@@ -116,16 +113,16 @@ export class RedisMock {
   }
 
   rpop(key: string): Promise<string> {
-    if (!this.data.has(key)) {
+    return Promise.resolve(this.rpopSync(key));
+  }
+
+  rpoplpush(source: string, destination: string): Promise<string> {
+    if (!this.data.has(source)) {
       return Promise.resolve(undefined);
     }
-    return this.withListAt(key, list => {
-      const element = list.pop();
-      if (list.length === 0) {
-        this.data.delete(key);
-      }
-      return Promise.resolve(element);
-    });
+    const toPush = this.rpopSync(source);
+    this.lpushSync(destination, toPush);
+    return Promise.resolve(toPush);
   }
 
   lrem(key: string, count: number, value: string): Promise<number> {
@@ -214,6 +211,26 @@ export class RedisMock {
     } else {
       throw new WrongTypeOperationError("Invalid type");
     }
+  }
+
+  private rpopSync(key: string): string {
+    if (!this.data.has(key)) {
+      return undefined;
+    }
+    return this.withListAt(key, list => {
+      const element = list.pop();
+      if (list.length === 0) {
+        this.data.delete(key);
+      }
+      return element;
+    });
+  }
+
+  private lpushSync(key, ...values): number {
+    return this.withListAt(key, list => {
+      list.splice(0, 0, ...values.reverse());
+      return list.length;
+    });
   }
 }
 
