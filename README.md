@@ -5,7 +5,7 @@
 - [ ] QUIT
 - [ ] SELECT
 - [ ] SWAPDB
-- [ ] DEL
+- [x] DEL
 - [ ] DUMP
 - [x] EXISTS
 - [ ] EXPIRE

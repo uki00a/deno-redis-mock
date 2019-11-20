@@ -22,6 +22,21 @@ export class RedisMock {
     }, new Map<string, RedisValue>());
   }
 
+  del(...keys: string[]): Promise<number> {
+    const uniqueKeys = [...new Set(keys)];
+    const numDeleted = uniqueKeys.reduce((numDeleted, key) => {
+      return this.data.has(key)
+        ? numDeleted + 1
+        : numDeleted;
+    }, 0);
+
+    uniqueKeys.forEach(keyToDelete => {
+      this.data.delete(keyToDelete);
+    });
+
+    return Promise.resolve(numDeleted);
+  }
+
   exists(...keys: string[]): Promise<number> {
     return Promise.resolve(keys.filter(key => this.data.has(key)).length);
   }

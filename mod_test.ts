@@ -19,4 +19,28 @@ test(async function exists() {
   assertStrictEq(await redis.exists('key1', 'key2', 'nosuchkey'), 2);
 });
 
+test(async function del() {
+  {
+    const redis = new RedisMock();
+    assertStrictEq(await redis.del('nosuchkey'), 0);
+  }
+
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.sadd('myset', 'one');
+    assertStrictEq(await redis.del('mylist', 'nosuchkey'), 1);
+    assertStrictEq(await redis.exists('mylist'), 0, 'should remove specified keys');
+  }
+
+  {
+    const redis = new RedisMock();
+    await redis.rpush('mylist', 'one');
+    await redis.sadd('myset', 'one');
+    assertStrictEq(await redis.del('mylist', 'mylist', 'myset', 'nosuchkey', 'mystring'), 2);
+    assertStrictEq(await redis.exists('mylist'), 0, 'should remove specified keys');
+    assertStrictEq(await redis.exists('myset'), 0, 'should remove specified keys');
+  }
+});
+
 runTests();
