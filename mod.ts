@@ -56,6 +56,13 @@ export class RedisMock {
     });
   }
 
+  scard(key: string): Promise<number> {
+    if (!this.data.has(key)) {
+      return Promise.resolve(0);
+    }
+    return this.withSetAt(key, set => Promise.resolve(set.size));
+  }
+
   sismember(key: string, member: string): Promise<number> {
     return this.withSetAt(key, set => {
       return Promise.resolve(set.has(member) ? 1 : 0);
