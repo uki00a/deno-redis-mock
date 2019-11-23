@@ -1,5 +1,5 @@
 import { runIfMain, test } from '../vendor/https/deno.land/std/testing/mod.ts';
-import { assertStrictEq } from '../vendor/https/deno.land/std/testing/asserts.ts';
+import { assertEquals, assertStrictEq, assertArrayContains } from '../vendor/https/deno.land/std/testing/asserts.ts';
 import { RedisMock } from '../mod.ts';
 
 test(async function sismember() {
@@ -26,6 +26,21 @@ test(async function scard() {
   {
     const redis = new RedisMock();
     assertStrictEq(await redis.scard('nosuchkey'), 0, 'should return zero if a key does not exist');
+    assertStrictEq(await redis.exists('nosuchkey'), 0, 'should not create a new key');
+  }
+});
+
+test(async function smembers() {
+  {
+    const redis = new RedisMock();
+    await redis.sadd('myset', 'Hello');
+    await redis.sadd('myset', 'World');
+    assertArrayContains(await redis.smembers('myset'), ['Hello', 'World']);
+  }
+
+  {
+    const redis = new RedisMock();
+    assertEquals(await redis.smembers('nosuchkey'), [], 'should return an empty array if a key does not exist');
     assertStrictEq(await redis.exists('nosuchkey'), 0, 'should not create a new key');
   }
 });

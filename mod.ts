@@ -63,6 +63,13 @@ export class RedisMock {
     return this.withSetAt(key, set => Promise.resolve(set.size));
   }
 
+  smembers(key: string): Promise<string[]> {
+    if (!this.data.has(key)) {
+      return Promise.resolve([]);
+    }
+    return this.withSetAt(key, set => Promise.resolve(Array.from(set)));
+  }
+
   sismember(key: string, member: string): Promise<number> {
     return this.withSetAt(key, set => {
       return Promise.resolve(set.has(member) ? 1 : 0);
