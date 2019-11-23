@@ -76,6 +76,26 @@ export class RedisMock {
     });
   }
 
+  sdiff(...keys: string[]): Promise<string[]> {
+    const emptySet = new Set<string>();
+    const sets = keys.map(key => this.data.has(key) ? this.data.get(key) : emptySet) as Set<string>[];
+
+    if (!sets.every(isSet)) {
+      return Promise.reject(new WrongTypeOperationError());
+    }
+
+    const [first, ...rest] = sets;
+    const diff = new Set<string>(first);
+    for (const set of rest) {
+      for (const x of set) {
+        if (diff.has(x)) {
+          diff.delete(x);
+        }
+      }
+    }
+    return Promise.resolve(Array.from(diff));
+  }
+
   lindex(key: string, index: number): Promise<string> {
     return this.withListAt(key, list => {
       const element = index < 0 ? list[list.length + index] : list[index];

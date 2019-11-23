@@ -72,7 +72,7 @@
 - [x] RPUSHX
 - [x] SADD
 - [x] SCARD
-- [ ] SDIFF
+- [x] SDIFF
 - [ ] SDIFFSTORE
 - [ ] SINTER
 - [ ] SINTERSTORE
