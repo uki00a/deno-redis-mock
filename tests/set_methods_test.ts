@@ -16,63 +16,59 @@ test(async function sismember() {
 });
 
 test(async function scard() {
-  {
-    const redis = new RedisMock();
-    await redis.sadd('myset', "Hello");
-    await redis.sadd('myset', "World");
-    assertStrictEq(await redis.scard('myset'), 2);
-  }
+  const redis = new RedisMock();
+  await redis.sadd('myset', "Hello");
+  await redis.sadd('myset', "World");
+  assertStrictEq(await redis.scard('myset'), 2);
+});
 
-  {
-    const redis = new RedisMock();
-    assertStrictEq(await redis.scard('nosuchkey'), 0, 'should return zero if a key does not exist');
-    assertStrictEq(await redis.exists('nosuchkey'), 0, 'should not create a new key');
-  }
+test(async function scardWhenKeyDoesNotExist() {
+  const redis = new RedisMock();
+  assertStrictEq(await redis.scard('nosuchkey'), 0, 'should return zero if a key does not exist');
+  assertStrictEq(await redis.exists('nosuchkey'), 0, 'should not create a new key');
 });
 
 test(async function smembers() {
-  {
-    const redis = new RedisMock();
-    await redis.sadd('myset', 'Hello');
-    await redis.sadd('myset', 'World');
-    assertArrayContains(await redis.smembers('myset'), ['Hello', 'World']);
-  }
+  const redis = new RedisMock();
+  await redis.sadd('myset', 'Hello');
+  await redis.sadd('myset', 'World');
+  assertArrayContains(await redis.smembers('myset'), ['Hello', 'World']);
+});
 
-  {
-    const redis = new RedisMock();
-    assertEquals(await redis.smembers('nosuchkey'), [], 'should return an empty array if a key does not exist');
-    assertStrictEq(await redis.exists('nosuchkey'), 0, 'should not create a new key');
-  }
+test(async function smembersWhenKeyDoesNotExist() {
+  const redis = new RedisMock();
+  assertEquals(await redis.smembers('nosuchkey'), [], 'should return an empty array if a key does not exist');
+  assertStrictEq(await redis.exists('nosuchkey'), 0, 'should not create a new key');
 });
 
 test(async function sdiff() {
-  {
-    const redis = new RedisMock();
-    await redis.sadd('key1', 'a', 'b', 'c', 'd');
-    await redis.sadd('key2', 'c');
-    await redis.sadd('key3', 'a', 'c', 'e');
+  const redis = new RedisMock();
+  await redis.sadd('key1', 'a', 'b', 'c', 'd');
+  await redis.sadd('key2', 'c');
+  await redis.sadd('key3', 'a', 'c', 'e');
 
-    const actual = await redis.sdiff('key1', 'key2', 'key3')
-    const expected = ['b', 'd'];
+  const actual = await redis.sdiff('key1', 'key2', 'key3')
+  const expected = ['b', 'd'];
 
-    assertStrictEq(actual.length, expected.length);
-    assertArrayContains(actual, expected);
-  }
+  assertStrictEq(actual.length, expected.length);
+  assertArrayContains(actual, expected);
+});
 
-  {
-    const redis = new RedisMock();
-    await redis.sadd('myset', 'a', 'b');
-    await redis.lpush('mylist', 'a');
-    await assertThrowsAsync(async () => {
-      await redis.sdiff('myset', 'mylist');
-    }, WrongTypeOperationError);
-  }
+test(async function sdiffShouldHandleWrongTypeValue() {
+  const redis = new RedisMock();
+  await redis.sadd('myset', 'a', 'b');
+  await redis.lpush('mylist', 'a');
+  await assertThrowsAsync(async () => {
+    await redis.sdiff('myset', 'mylist');
+  }, WrongTypeOperationError);
+});
 
+test(async function sdiffShouldHandleNonExistingKey() {
   {
     const redis = new RedisMock();
     await redis.sadd('myset', 'a');
     assertEquals(await redis.sdiff('nosuchkey', 'myset'), [], 'should treat a non-existing key as an empty set');
-    assertStrictEq(await redis.exists('nosuchkey'), 0, 'should create a new key');
+    assertStrictEq(await redis.exists('nosuchkey'), 0, 'should not create a new key');
   }
 
   {
