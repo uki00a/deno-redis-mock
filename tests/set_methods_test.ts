@@ -84,4 +84,50 @@ test(async function sdiffShouldHandleNonExistingKey() {
   }
 });
 
+test(async function spop() {
+  const redis = new RedisMock();
+  await redis.sadd('myset', 'a');
+  await redis.sadd('myset', 'b');
+
+  const actual = await redis.spop('myset');
+  const expected = actual === 'a' ? 'a' : 'b';
+
+  assertStrictEq(actual, expected);
+  assertStrictEq(await redis.scard('myset'), 1);
+});
+
+test(async function spopSigletonSet() {
+  const redis = new RedisMock();
+  await redis.sadd('myset', 'a');
+  assertStrictEq(await redis.spop('myset'), 'a');
+  assertStrictEq(await redis.exists('myset'), 0);
+});
+
+test(async function spopWithCount() {
+  const redis = new RedisMock();
+  await redis.sadd('myset', 'a');
+  await redis.sadd('myset', 'b');
+  await redis.sadd('myset', 'c');
+
+  assertArrayContains(await redis.spop('myset', 3), ['a', 'b', 'c']);
+  assertStrictEq(await redis.exists('myset'), 0);
+});
+
+test(async function spopWhenKeyDoesNotExist() {
+  const redis = new RedisMock();
+  assertStrictEq(await redis.spop('nosuchkey'), undefined);
+});
+
+test(async function spopWithCountWhenKeyDoesNotExist() {
+  const redis = new RedisMock();
+  assertEquals(await redis.spop('nosuchkey', 2), []);
+});
+
+test(async function spopNonSet() {
+  const redis = new RedisMock();
+  await redis.rpush('mylist', 'a');
+  assertStrictEq(await redis.spop('mylist'), undefined);
+  assertEquals(await redis.spop('mylist', 2), []);
+});
+
 runIfMain(import.meta);

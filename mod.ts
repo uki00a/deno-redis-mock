@@ -96,6 +96,16 @@ export class RedisMock {
     return Promise.resolve(Array.from(diff));
   }
 
+  spop(key: string): Promise<string>;
+  spop(key: string, count: number): Promise<string[]>;
+  spop(key: string, count?: number): Promise<string | string[]> {
+    if (!isSet(this.data.get(key))) {
+      return Promise.resolve(count == null ? NIL : []);
+    }
+    const popped = count == null ? this.spopSync(key) : this.spopSyncWithCount(key, count);
+    return Promise.resolve(popped);
+  }
+
   lindex(key: string, index: number): Promise<string> {
     return this.withListAt(key, list => {
       const element = index < 0 ? list[list.length + index] : list[index];
@@ -264,6 +274,29 @@ export class RedisMock {
     }
   }
 
+  private spopSync(key: string): string {
+    return this.withSetAt(key, set => {
+      const members = Array.from(set);
+      const toPop = sample(members);
+      set.delete(toPop);
+      if (set.size === 0) {
+        this.data.delete(key);
+      }
+      return toPop;
+    });
+  }
+
+  private spopSyncWithCount(key: string, count: number): string[] {
+    return this.withSetAt(key, set => {
+      const toPop = Array.from(set.values()).slice(0, count);
+      toPop.forEach(x => set.delete(x));
+      if (set.size === 0) {
+        this.data.delete(key);
+      }
+      return toPop;
+    });
+  }
+
   private rpopSync(key: string): string {
     if (!this.data.has(key)) {
       return NIL;
@@ -299,3 +332,8 @@ function isString(v: RedisValue): v is string {
 function isSet(v: RedisValue): v is Set<string> {
   return v instanceof Set;
 }
+
+function sample<T>(array: T[]): T {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
