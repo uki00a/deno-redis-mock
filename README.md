@@ -81,7 +81,7 @@
 - [ ] SMOVE
 - [x] SPOP
 - [ ] SRANDMEMBER
-- [ ] SREM
+- [x] SREM
 - [ ] BZPOPMIN
 - [ ] BZPOPMAX
 - [ ] ZADD

@@ -76,6 +76,23 @@ export class RedisMock {
     });
   }
 
+  srem(key: string, ...members: string[]): Promise<number> {
+    if (!this.data.has(key)) {
+      return Promise.resolve(0);
+    }
+    return this.withSetAt(key, set => {
+      const previousSize = set.size;
+
+      members.forEach(x => set.delete(x));
+
+      if (set.size === 0) {
+        this.data.delete(key);
+      }
+
+      return Promise.resolve(previousSize - set.size);
+    });
+  }
+
   sdiff(...keys: string[]): Promise<string[]> {
     const emptySet = new Set<string>();
     const sets = keys.map(key => this.data.has(key) ? this.data.get(key) : emptySet) as Set<string>[];

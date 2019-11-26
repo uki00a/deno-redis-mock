@@ -130,4 +130,39 @@ test(async function spopNonSet() {
   assertEquals(await redis.spop('mylist', 2), []);
 });
 
+test(async function srem() {
+  const redis = new RedisMock();
+  await redis.sadd('myset', 'one');
+  await redis.sadd('myset', 'two');
+  await redis.sadd('myset', 'three');
+  await redis.sadd('myset', 'four');
+
+  assertStrictEq(await redis.srem('myset', 'one'), 1);
+  assertStrictEq(await redis.srem('myset', 'three', 'four', 'three', 'five'), 2);
+  assertStrictEq(await redis.srem('myset', 'six'), 0);
+  assertEquals(await redis.smembers('myset'), ['two']);
+});
+
+test(async function sremThrowsWrongTypeOperationError() {
+  const redis = new RedisMock();
+  await redis.rpush('mylist', 'one');
+
+  await assertThrowsAsync(async () => {
+    await redis.srem('mylist', 'one');
+  }, WrongTypeOperationError);
+});
+
+test(async function sremWhenKeyDoesNotExist() {
+  const redis = new RedisMock();
+  assertStrictEq(await redis.srem('nosuchkey', 'a'), 0);
+  assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function sremRemovesKeyWhenSetIsEmpty() {
+  const redis = new RedisMock();
+  await redis.sadd('myset', 'a', 'b');
+  await redis.srem('myset', 'a', 'b');
+  assertStrictEq(await redis.exists('myset'), 0);
+});
+
 runIfMain(import.meta);
