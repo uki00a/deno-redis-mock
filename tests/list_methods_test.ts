@@ -85,7 +85,7 @@ test(async function lpop() {
   assertStrictEq(await redis.llen('test-list'), 1);
 });
 
-test(async function lpopSingletonList() {
+test(async function lpopFromSingletonList() {
   const redis = new RedisMock();
   await redis.rpush('myotherlist', 'one');
   assertStrictEq(await redis.lpop('myotherlist'), 'one');
@@ -109,7 +109,7 @@ test(async function rpop() {
   assertEquals(await redis.lrange('mylist', 0, -1), ['one', 'two'], 'should remove a key if a last element is popped');
 });
 
-test(async function rpopSingletonList() {
+test(async function rpopFromSingletonList() {
   const redis = new RedisMock();
   await redis.rpush('myotherlist', 'one');
   assertStrictEq(await redis.rpop('myotherlist'), 'one');
@@ -134,7 +134,7 @@ test(async function rpoplpush() {
   assertEquals(await redis.lrange('myotherlist', 0, -1), ['three']);
 });
 
-test(async function rpoplpushShouldDeleteSourceListIfSingleton() {
+test(async function rpoplpushDeletesKeyOfSourceListWhenEmpty() {
   const redis = new RedisMock();
   await redis.rpush('mylist', 'one');
   await redis.rpush('myotherlist', '1');
@@ -199,7 +199,7 @@ test(async function lrem() {
   }
 });
 
-test(async function lremSingletonList() {
+test(async function lremFromSingletonList() {
   const redis = new RedisMock();
   await redis.rpush('mylist', 'one');
   await redis.rpush('mylist', 'one');

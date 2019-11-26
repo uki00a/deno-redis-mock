@@ -54,7 +54,7 @@ test(async function sdiff() {
   assertArrayContains(actual, expected);
 });
 
-test(async function sdiffShouldHandleWrongTypeValue() {
+test(async function sdiffThrowsWrongTypeValueError() {
   const redis = new RedisMock();
   await redis.sadd('myset', 'a', 'b');
   await redis.lpush('mylist', 'a');
@@ -63,7 +63,7 @@ test(async function sdiffShouldHandleWrongTypeValue() {
   }, WrongTypeOperationError);
 });
 
-test(async function sdiffShouldHandleNonExistingKey() {
+test(async function sdiffWhenKeyDoesNot() {
   {
     const redis = new RedisMock();
     await redis.sadd('myset', 'a');
@@ -96,7 +96,7 @@ test(async function spop() {
   assertStrictEq(await redis.scard('myset'), 1);
 });
 
-test(async function spopSigletonSet() {
+test(async function spopFromSigletonSet() {
   const redis = new RedisMock();
   await redis.sadd('myset', 'a');
   assertStrictEq(await redis.spop('myset'), 'a');
@@ -123,7 +123,7 @@ test(async function spopWithCountWhenKeyDoesNotExist() {
   assertEquals(await redis.spop('nosuchkey', 2), []);
 });
 
-test(async function spopNonSet() {
+test(async function spopFromNonSet() {
   const redis = new RedisMock();
   await redis.rpush('mylist', 'a');
   assertStrictEq(await redis.spop('mylist'), undefined);
