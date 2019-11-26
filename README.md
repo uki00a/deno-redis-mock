@@ -79,7 +79,7 @@
 - [x] SISMEMBER
 - [x] SMEMBERS
 - [ ] SMOVE
-- [ ] SPOP
+- [x] SPOP
 - [ ] SRANDMEMBER
 - [ ] SREM
 - [ ] BZPOPMIN
