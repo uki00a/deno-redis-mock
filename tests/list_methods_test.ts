@@ -1,9 +1,9 @@
 import { runIfMain, test } from '../vendor/https/deno.land/std/testing/mod.ts';
 import { assertStrictEq, assertArrayContains, assertEquals, assertThrowsAsync } from '../vendor/https/deno.land/std/testing/asserts.ts';
-import { RedisMock, IndexOutOfRangeError, WrongTypeOperationError } from '../mod.ts';
+import { createMockRedis, IndexOutOfRangeError, WrongTypeOperationError } from '../mod.ts';
 
 test(async function lindex() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
 
   await redis.lpush('test-list', 'D', 'C', 'B', 'A');
 
@@ -16,7 +16,7 @@ test(async function lindex() {
 });
 
 test(async function lrange() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
 
   await redis.rpush('mylist', 'one');
   await redis.rpush('mylist', 'two');
@@ -32,14 +32,14 @@ test(async function lrange() {
 });
 
 test(async function lpush() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
 
   assertStrictEq(await redis.lpush('test-list', 'a'), 1);
   assertStrictEq(await redis.lpush('test-list', 'b', 'c'), 3);
 });
 
 test(async function lpushx() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   await redis.lpush('mylist', 'World');
   assertStrictEq(await redis.lpushx('mylist', 'Hello'), 2);
   assertStrictEq(await redis.lpushx('myotherlist', 'Hello'), 0);
@@ -55,7 +55,7 @@ test(async function lpushx() {
 
 test(async function rpush() {
   {
-    const redis = new RedisMock();
+    const redis = createMockRedis();
 
     assertStrictEq(await redis.rpush('test-list', 'one'), 1);
     assertStrictEq(await redis.rpush('test-list', 'two', 'three'), 3);
@@ -63,7 +63,7 @@ test(async function rpush() {
 });
 
 test(async function rpushx() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
 
   await redis.rpush('mylist', 'one');
 
@@ -76,7 +76,7 @@ test(async function rpushx() {
 });
 
 test(async function lpop() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
 
   await redis.lpush('test-list', '100');
   await redis.lpush('test-list', '200');
@@ -86,20 +86,20 @@ test(async function lpop() {
 });
 
 test(async function lpopFromSingletonList() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   await redis.rpush('myotherlist', 'one');
   assertStrictEq(await redis.lpop('myotherlist'), 'one');
   assertStrictEq(await redis.exists('myotherlist'), 0, 'should remove a key if a list was singleton');
 });
 
 test(async function lpopWhenKeyDoesNotExist() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   assertStrictEq(await redis.lpop('nosuchkey'), undefined);
   assertStrictEq(await redis.exists('nosuchkey'), 0, 'should not create a new key if not exists');
 });
 
 test(async function rpop() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
 
   await redis.rpush('mylist', 'one');
   await redis.rpush('mylist', 'two');
@@ -110,20 +110,20 @@ test(async function rpop() {
 });
 
 test(async function rpopFromSingletonList() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   await redis.rpush('myotherlist', 'one');
   assertStrictEq(await redis.rpop('myotherlist'), 'one');
   assertStrictEq(await redis.exists('myotherlist'), 0, 'should remove a key if a list was singleton');
 });
 
 test(async function rpopWhenKeyDoesNotExist() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   assertStrictEq(await redis.rpop('nosuchkey'), undefined);
   assertStrictEq(await redis.exists('nosuchkey'), 0, 'should not create a new key if not exists');
 });
 
 test(async function rpoplpush() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   await redis.rpush('mylist', 'one');
   await redis.rpush('mylist', 'two');
   await redis.rpush('mylist', 'three');
@@ -135,7 +135,7 @@ test(async function rpoplpush() {
 });
 
 test(async function rpoplpushDeletesKeyOfSourceListWhenEmpty() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   await redis.rpush('mylist', 'one');
   await redis.rpush('myotherlist', '1');
 
@@ -146,7 +146,7 @@ test(async function rpoplpushDeletesKeyOfSourceListWhenEmpty() {
 });
 
 test(async function rpoplpushWhenKeyDoesNotExist() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   await redis.rpush('mylist', 'one');
 
   assertStrictEq(await redis.rpoplpush('nosuchkey', 'mylist'), undefined);
@@ -188,7 +188,7 @@ test(async function lrem() {
       }
     }
   ]) {
-    const redis = new RedisMock();
+    const redis = createMockRedis();
     await redis.rpush('mylist', 'hello');
     await redis.rpush('mylist', 'hello');
     await redis.rpush('mylist', 'foo');
@@ -200,7 +200,7 @@ test(async function lrem() {
 });
 
 test(async function lremFromSingletonList() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   await redis.rpush('mylist', 'one');
   await redis.rpush('mylist', 'one');
 
@@ -210,7 +210,7 @@ test(async function lremFromSingletonList() {
 });
 
 test(async function lset() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   await redis.rpush('mylist', 'one');
   await redis.rpush('mylist', 'two');
   await redis.rpush('mylist', 'three');
@@ -225,7 +225,7 @@ test(async function lset() {
 });
 
 test(async function lsetAtOutOfRangeIndex() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   await redis.rpush('mylist', 'one');
   await redis.rpush('mylist', 'two');
   await redis.rpush('mylist', 'three');
@@ -248,7 +248,7 @@ test(async function lsetAtOutOfRangeIndex() {
 });
 
 test(async function llen() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
 
   await redis.lpush('test-list', 'a');
   await redis.lpush('test-list', 'b');
@@ -285,7 +285,7 @@ test(async function ltrim() {
       should: 'return an empty array if indexes are out of range'
     }
   ]) {
-    const redis = new RedisMock();
+    const redis = createMockRedis();
     await redis.rpush('mylist', 'one');
     await redis.rpush('mylist', 'two');
     await redis.rpush('mylist', 'three');
@@ -302,7 +302,7 @@ test(async function ltrim() {
 test(async function linsertBeforePivot() {
 
   {
-    const redis = new RedisMock();
+    const redis = createMockRedis();
     await redis.rpush('mylist', 'Hello');
     await redis.rpush('mylist', 'World');
     assertStrictEq(await redis.linsert('mylist', 'BEFORE', 'World', 'There'), 3);
@@ -310,7 +310,7 @@ test(async function linsertBeforePivot() {
   }
 
   {
-    const redis = new RedisMock();
+    const redis = createMockRedis();
     await redis.rpush('mylist', 'one');
     await redis.rpush('mylist', 'two');
     assertStrictEq(await redis.linsert('mylist', 'BEFORE', 'one', 'zero'), 3);
@@ -320,7 +320,7 @@ test(async function linsertBeforePivot() {
 
 test(async function linsertAfterPivot() {
   {
-    const redis = new RedisMock();
+    const redis = createMockRedis();
     await redis.rpush('mylist', 'one');
     await redis.rpush('mylist', 'two');
     assertStrictEq(await redis.linsert('mylist', 'AFTER', 'two', 'three'), 3);
@@ -328,7 +328,7 @@ test(async function linsertAfterPivot() {
   }
 
   {
-    const redis = new RedisMock();
+    const redis = createMockRedis();
     await redis.rpush('mylist', 'one');
     await redis.rpush('mylist', 'two');
     await redis.rpush('mylist', 'two');
@@ -338,7 +338,7 @@ test(async function linsertAfterPivot() {
 });
 
 test(async function linsertWhenPivotDoesNotExist() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   await redis.rpush('mylist', 'one');
   await redis.rpush('mylist', 'two');
   assertStrictEq(await redis.linsert('mylist', 'BEFORE', 'four', 'three'), -1);

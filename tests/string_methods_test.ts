@@ -1,10 +1,10 @@
 import { runIfMain, test } from '../vendor/https/deno.land/std/testing/mod.ts';
 import { assertStrictEq } from '../vendor/https/deno.land/std/testing/asserts.ts';
-import { RedisMock } from '../mod.ts';
+import { createMockRedis } from '../mod.ts';
 
 
 test(async function get() {
-  const redis = new RedisMock({
+  const redis = createMockRedis({
     data: {
       'test': 'hello'
     }

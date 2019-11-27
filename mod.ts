@@ -10,7 +10,11 @@ type RedisValue = string | Set<string> | Array<string>;
 
 const NIL = undefined;
 
-export class RedisMock {
+export function createMockRedis(options?: RedisMockOptions) {
+  return new MockRedis(options);
+}
+
+class MockRedis {
   private readonly data: Map<string, RedisValue>;
 
   constructor(options?: RedisMockOptions) {
@@ -353,4 +357,3 @@ function isSet(v: RedisValue): v is Set<string> {
 function sample<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
-

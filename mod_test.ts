@@ -1,13 +1,13 @@
 import { runTests, test } from './vendor/https/deno.land/std/testing/mod.ts';
 import { assertStrictEq } from './vendor/https/deno.land/std/testing/asserts.ts';
-import { RedisMock } from './mod.ts';
+import { createMockRedis } from './mod.ts';
 
 import './tests/string_methods_test.ts';
 import './tests/list_methods_test.ts';
 import './tests/set_methods_test.ts';
 
 test(async function exists() {
-  const redis = new RedisMock();
+  const redis = createMockRedis();
   // TODO replace with `SET`
   await redis.lpush('key1', 'Hello');
 
@@ -21,12 +21,12 @@ test(async function exists() {
 
 test(async function del() {
   {
-    const redis = new RedisMock();
+    const redis = createMockRedis();
     assertStrictEq(await redis.del('nosuchkey'), 0);
   }
 
   {
-    const redis = new RedisMock();
+    const redis = createMockRedis();
     await redis.rpush('mylist', 'one');
     await redis.sadd('myset', 'one');
     assertStrictEq(await redis.del('mylist', 'nosuchkey'), 1);
@@ -34,7 +34,7 @@ test(async function del() {
   }
 
   {
-    const redis = new RedisMock();
+    const redis = createMockRedis();
     await redis.rpush('mylist', 'one');
     await redis.sadd('myset', 'one');
     assertStrictEq(await redis.del('mylist', 'mylist', 'myset', 'nosuchkey', 'mystring'), 2);
