@@ -165,4 +165,71 @@ test(async function sremRemovesKeyWhenSetIsEmpty() {
   assertStrictEq(await redis.exists('myset'), 0);
 });
 
+test(async function smove() {
+  const redis = createMockRedis();
+  await redis.sadd('myset', 'one');
+  await redis.sadd('myset', 'two');
+  await redis.sadd('myotherset', 'three');
+
+  assertStrictEq(await redis.smove('myset', 'myotherset', 'two'), 1);
+
+  assertEquals(await redis.smembers('myset'), ['one']);
+  assertArrayContains(await redis.smembers('myotherset'), ['two', 'three']);
+});
+
+test(async function smoveReturnsZeroWhenSourceDoesNotExist() {
+  const redis = createMockRedis();
+  assertStrictEq(await redis.smove('nosuchkey', 'myset', 'one'), 0);
+  assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function smoveReturnsZeroWhenSpecifiedMemberDoesNotExist() {
+  const redis = createMockRedis();
+  await redis.sadd('myset', 'one');
+  await redis.sadd('myotherset', 'a');
+
+  assertStrictEq(await redis.smove('myset', 'myotherset', 'two'), 0);
+  assertEquals(await redis.smembers('myset'), ['one']);
+  assertEquals(await redis.smembers('myotherset'), ['a']);
+});
+
+test(async function smoveRemovesKeyWhenSourceSetIsEmpty() {
+  const redis = createMockRedis();
+  await redis.sadd('myset', 'one');
+  await redis.sadd('myotherset', 'two');
+
+  assertStrictEq(await redis.smove('myset', 'myotherset', 'one'), 1);
+
+  assertStrictEq(await redis.exists('myset'), 0);
+});
+
+test(async function smoveCreatesKeyWhenDestinationSetDoesNotExist() {
+  const redis = createMockRedis();
+  await redis.sadd('myset', 'one');
+
+  assertStrictEq(await redis.smove('myset', 'myotherset', 'one'), 1);
+
+  assertEquals(await redis.smembers('myotherset'), ['one']);
+});
+
+test(async function smoveThrowsErrorWhenSourceIsNotSet() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await redis.sadd('myset', 'a');
+
+  await assertThrowsAsync(async () => {
+    await redis.smove('mylist', 'myset', 'one');
+  }, WrongTypeOperationError);
+});
+
+test(async function smoveThrowsErrorWhenDestinationIsNotSet() {
+  const redis = createMockRedis();
+  await redis.sadd('myset', 'one');
+  await redis.rpush('mylist', 'a');
+
+  await assertThrowsAsync(async () => {
+    await redis.smove('myset', 'mylist', 'one');
+  }, WrongTypeOperationError);
+});
+
 runIfMain(import.meta);

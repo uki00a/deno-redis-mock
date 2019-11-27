@@ -97,6 +97,29 @@ class MockRedis {
     });
   }
 
+  smove(source: string, destination: string, member: string): Promise<number> {
+    if (!this.data.has(source)) {
+      return Promise.resolve(0);
+    }
+
+    return this.withSetAt(source, sourceSet => {
+      if (!sourceSet.has(member)) {
+        return Promise.resolve(0);
+      }
+
+      return this.withSetAt(destination, destinationSet => {
+        sourceSet.delete(member);
+        destinationSet.add(member);
+
+        if (sourceSet.size === 0) {
+          this.data.delete(source);
+        }
+
+        return Promise.resolve(1);
+      });
+    });
+  }
+
   sdiff(...keys: string[]): Promise<string[]> {
     const emptySet = new Set<string>();
     const sets = keys.map(key => this.data.has(key) ? this.data.get(key) : emptySet) as Set<string>[];

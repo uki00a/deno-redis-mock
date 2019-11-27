@@ -78,7 +78,7 @@
 - [ ] SINTERSTORE
 - [x] SISMEMBER
 - [x] SMEMBERS
-- [ ] SMOVE
+- [x] SMOVE
 - [x] SPOP
 - [ ] SRANDMEMBER
 - [x] SREM
