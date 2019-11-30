@@ -73,7 +73,7 @@
 - [x] SADD
 - [x] SCARD
 - [x] SDIFF
-- [ ] SDIFFSTORE
+- [x] SDIFFSTORE
 - [ ] SINTER
 - [ ] SINTERSTORE
 - [x] SISMEMBER

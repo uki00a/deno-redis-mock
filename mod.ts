@@ -120,24 +120,15 @@ class MockRedis {
     });
   }
 
-  sdiff(...keys: string[]): Promise<string[]> {
-    const emptySet = new Set<string>();
-    const sets = keys.map(key => this.data.has(key) ? this.data.get(key) : emptySet) as Set<string>[];
+  async sdiff(...keys: string[]): Promise<string[]> {
+    return this.sdiffSync(...keys);
+  }
 
-    if (!sets.every(isSet)) {
-      return Promise.reject(new WrongTypeOperationError());
-    }
-
-    const [first, ...rest] = sets;
-    const diff = new Set<string>(first);
-    for (const set of rest) {
-      for (const x of set) {
-        if (diff.has(x)) {
-          diff.delete(x);
-        }
-      }
-    }
-    return Promise.resolve(Array.from(diff));
+  async sdiffstore(destination: string, ...keys: string[]): Promise<number> {
+    const diff = this.sdiffSync(...keys);
+    const destinationSet = new Set<string>(diff);
+    this.data.set(destination, destinationSet);
+    return destinationSet.size;
   }
 
   spop(key: string): Promise<string>;
@@ -339,6 +330,26 @@ class MockRedis {
       }
       return toPop;
     });
+  }
+
+  private sdiffSync(...keys: string[]): string[] {
+    const emptySet = new Set<string>();
+    const sets = keys.map(key => this.data.has(key) ? this.data.get(key) : emptySet) as Set<string>[];
+
+    if (!sets.every(isSet)) {
+      throw new WrongTypeOperationError();
+    }
+
+    const [first, ...rest] = sets;
+    const diff = new Set<string>(first);
+    for (const set of rest) {
+      for (const x of set) {
+        if (diff.has(x)) {
+          diff.delete(x);
+        }
+      }
+    }
+    return Array.from(diff);
   }
 
   private rpopSync(key: string): string {

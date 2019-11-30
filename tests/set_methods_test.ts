@@ -84,6 +84,61 @@ test(async function sdiffWhenKeyDoesNot() {
   }
 });
 
+test(async function sdiffstore() {
+  const redis = createMockRedis();
+
+  await redis.sadd('key1', 'a', 'b', 'c', 'd');
+  await redis.sadd('key2', 'c');
+  await redis.sadd('key2', 'd', 'e');
+
+  const reply = await redis.sdiffstore('key', 'key1', 'key2', 'key3');
+  assertStrictEq(reply, 2);
+
+  const expected = ['a', 'b'];
+  const actual = await redis.smembers('key');
+  assertArrayContains(actual, expected);
+  assertStrictEq(actual.length, expected.length);
+});
+
+test(async function sdiffstoreOverwriteDestinationKeyWhenAlreadyExists() {
+  const redis = createMockRedis();
+  await redis.rpush('destination', 'a', 'b', 'c');
+  await redis.sadd('key1', 'one', 'two', 'three');
+  await redis.sadd('key2', 'three', 'four', 'five');
+
+  const reply = await redis.sdiffstore('destination', 'key1', 'key2');
+  assertStrictEq(reply, 2);
+
+  const expected = ['one', 'two'];
+  const actual = await redis.smembers('destination');
+
+  assertArrayContains(actual, expected);
+  assertStrictEq(actual.length, expected.length);
+});
+
+test(async function sdiffstoreThrowsWhenWrongTypeValueExists() {
+  const redis = createMockRedis();
+  await redis.sadd('myset', 'a', 'b');
+  await redis.lpush('mylist', 'a');
+  await assertThrowsAsync(async () => {
+    await redis.sdiffstore('destination', 'myset', 'mylist');
+  }, WrongTypeOperationError);
+});
+
+test(async function sdiffstoreTreatsNonExistingKeyAsEmptySet() {
+  const redis = createMockRedis();
+  await redis.sadd('myset', 'a', 'b');
+
+  const reply = await redis.sdiffstore('destination', 'myset', 'nosuchkey')
+  assertStrictEq(reply, 2);
+
+  const expected = ['a', 'b'];
+  const actual = await redis.smembers('destination');
+
+  assertArrayContains(actual, expected);
+  assertStrictEq(actual.length, expected.length);
+});
+
 test(async function spop() {
   const redis = createMockRedis();
   await redis.sadd('myset', 'a');
