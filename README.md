@@ -74,7 +74,7 @@
 - [x] SCARD
 - [x] SDIFF
 - [x] SDIFFSTORE
-- [ ] SINTER
+- [x] SINTER
 - [ ] SINTERSTORE
 - [x] SISMEMBER
 - [x] SMEMBERS

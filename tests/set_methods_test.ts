@@ -139,6 +139,40 @@ test(async function sdiffstoreTreatsNonExistingKeyAsEmptySet() {
   assertStrictEq(actual.length, expected.length);
 });
 
+test(async function sinter() {
+  const redis = createMockRedis();
+  await redis.sadd('key1', 'a', 'b', 'c', 'd');
+  await redis.sadd('key2', 'c');
+  await redis.sadd('key3', 'a', 'c', 'e');
+
+  const expected = ['c'];
+  const actual = await redis.sinter('key1', 'key2', 'key3');
+
+  assertEquals(actual, expected);
+});
+
+test(async function sinterReturnsEmptyArrayWhenEmptySetExists() {
+  const redis = createMockRedis();
+  await redis.sadd('key1', 'a', 'b');
+  await redis.sadd('key2', 'b');
+
+  const expected = [];
+  const actual = await redis.sinter('key1', 'key2', 'nosuchkey');
+
+  assertEquals(actual, expected);
+});
+
+test(async function sinterThrowsErrorWhenWrongTypeValueExists() {
+  const redis = createMockRedis();
+  await redis.sadd('key1', 'one', 'two');
+  await redis.sadd('key2', 'two', 'three');
+  await redis.rpush('key3', 'three', 'four');
+
+  await assertThrowsAsync(async () => {
+    await redis.sinter('key1', 'key2', 'key3');
+  }, WrongTypeOperationError);
+});
+
 test(async function spop() {
   const redis = createMockRedis();
   await redis.sadd('myset', 'a');

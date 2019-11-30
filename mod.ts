@@ -131,6 +131,16 @@ class MockRedis {
     return destinationSet.size;
   }
 
+  async sinter(...keys: string[]): Promise<string[]> {
+    const emptySet = new Set<string>();
+    const sets = keys.map(key => this.data.has(key) ? this.data.get(key) : emptySet);
+    if (!sets.every(isSet)) {
+      throw new WrongTypeOperationError();
+    }
+    const inter = sets.reduce(intersection);
+    return Array.from(inter);
+  }
+
   spop(key: string): Promise<string>;
   spop(key: string, count: number): Promise<string[]>;
   spop(key: string, count?: number): Promise<string | string[]> {
@@ -390,4 +400,14 @@ function isSet(v: RedisValue): v is Set<string> {
 
 function sample<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
+}
+
+function intersection(set1: Set<string>, set2: Set<string>): Set<string> {
+  const inter = new Set<string>();
+  for (const x of set2) {
+    if (set1.has(x)) {
+      inter.add(x);
+    }
+  }
+  return inter;
 }
