@@ -173,6 +173,44 @@ test(async function sinterThrowsErrorWhenWrongTypeValueExists() {
   }, WrongTypeOperationError);
 });
 
+test(async function sinterstore() {
+  const redis = createMockRedis();
+  await redis.sadd('key1', 'a', 'b', 'c', 'd');
+  await redis.sadd('key2', 'c', "d", 'e', 'f');
+
+  const reply = await redis.sinterstore('destination', 'key1', 'key2');
+  assertStrictEq(reply, 2);
+
+  const actual = await redis.smembers('destination');
+  const expected = ['c', 'd'];
+  assertArrayContains(actual, expected);
+  assertStrictEq(actual.length, expected.length);
+});
+
+test(async function sinterstoreOverwriteDestinationKeyWhenAlreadyExists() {
+  const redis = createMockRedis();
+  await redis.rpush('destination', 'a', 'b', 'c');
+  await redis.sadd('key1', 'one', 'two');
+  await redis.sadd('key2', 'two', 'three');
+
+  const reply = await redis.sinterstore('destination', 'key1', 'key2');
+  assertStrictEq(reply, 1);
+
+  const actual = await redis.smembers('destination');
+  const expected = ['two'];
+  assertEquals(actual, expected);
+});
+
+test(async function sinterstoreThrowsWhenWrongTypeValueExists() {
+  const redis = createMockRedis();
+  await redis.sadd('myset', 'a');
+  await redis.rpush('mylist', 'one');
+
+  await assertThrowsAsync(async () => {
+    await redis.sinterstore('destination', 'myset', 'mylist');
+  }, WrongTypeOperationError);
+});
+
 test(async function spop() {
   const redis = createMockRedis();
   await redis.sadd('myset', 'a');

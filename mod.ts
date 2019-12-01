@@ -132,13 +132,14 @@ class MockRedis {
   }
 
   async sinter(...keys: string[]): Promise<string[]> {
-    const emptySet = new Set<string>();
-    const sets = keys.map(key => this.data.has(key) ? this.data.get(key) : emptySet);
-    if (!sets.every(isSet)) {
-      throw new WrongTypeOperationError();
-    }
-    const inter = sets.reduce(intersection);
+    const inter = this.sinterSync(...keys);
     return Array.from(inter);
+  }
+
+  async sinterstore(destination: string, ...keys: string[]): Promise<number> {
+    const inter = this.sinterSync(...keys);
+    this.data.set(destination, inter);
+    return inter.size;
   }
 
   spop(key: string): Promise<string>;
@@ -360,6 +361,15 @@ class MockRedis {
       }
     }
     return Array.from(diff);
+  }
+
+  private sinterSync(...keys: string[]): Set<string> {
+    const emptySet = new Set<string>();
+    const sets = keys.map(key => this.data.has(key) ? this.data.get(key) : emptySet) as Set<string>[];
+    if (!sets.every(isSet)) {
+      throw new WrongTypeOperationError();
+    }
+    return sets.reduce(intersection);
   }
 
   private rpopSync(key: string): string {
