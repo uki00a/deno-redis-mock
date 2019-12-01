@@ -109,7 +109,7 @@
 - [ ] ZSCAN
 - [ ] HDEL
 - [ ] HEXISTS
-- [ ] HGET
+- [x] HGET
 - [ ] HGETALL
 - [ ] HINCRBY
 - [ ] HINCRBYFLOAT
@@ -117,7 +117,7 @@
 - [ ] HLEN
 - [ ] HMGET
 - [ ] HMSET
-- [ ] HSET
+- [x] HSET
 - [ ] HSETNX
 - [ ] HSTRLEN
 - [ ] HVALS

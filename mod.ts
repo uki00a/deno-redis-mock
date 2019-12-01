@@ -6,7 +6,8 @@ type Data = {
   [key: string]: RedisValue;
 };
 
-type RedisValue = string | Set<string> | Array<string>;
+type RedisHash = { [field: string]: string; };
+type RedisValue = string | Set<string> | Array<string> | RedisHash;
 
 const NIL = undefined;
 
@@ -298,6 +299,24 @@ class MockRedis {
     });
   }
 
+  async hget(key: string, field: string): Promise<string> {
+    const hash = this.data.get(key);
+    if (isHash(hash)) {
+      return hash[field];
+    } else if (hash == null) {
+      return NIL;
+    } else {
+      throw new WrongTypeOperationError();
+    }
+  }
+
+  hset(key: string, field: string, value: string): Promise<number> {
+    return this.withHashAt(key, hash => {
+      hash[field] = value;
+      return Promise.resolve(1);
+    });
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {
@@ -319,6 +338,19 @@ class MockRedis {
       const list: Array<string> = [];
       this.data.set(key, list);
       return proc(list);
+    } else {
+      throw new WrongTypeOperationError("Invalid type");
+    }
+  }
+
+  private withHashAt<T>(key: string, proc: (hash: RedisHash) => T): T {
+    const maybeHash = this.data.get(key);
+    if (isHash(maybeHash)) {
+      return proc(maybeHash);
+    } else if (maybeHash == null) {
+      const hash = {} as RedisHash;
+      this.data.set(key, hash);
+      return proc(hash);
     } else {
       throw new WrongTypeOperationError("Invalid type");
     }
@@ -424,6 +456,10 @@ function isString(v: RedisValue): v is string {
 
 function isSet(v: RedisValue): v is Set<string> {
   return v instanceof Set;
+}
+
+function isHash(v: RedisValue): v is RedisHash {
+  return Object.prototype.toString.call(v) === '[object Object]';
 }
 
 function sample<T>(array: T[]): T {

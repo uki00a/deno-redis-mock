@@ -5,6 +5,7 @@ import { createMockRedis } from './mod.ts';
 import './tests/string_methods_test.ts';
 import './tests/list_methods_test.ts';
 import './tests/set_methods_test.ts';
+import './tests/hash_methods_test.ts';
 
 test(async function exists() {
   const redis = createMockRedis();
