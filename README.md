@@ -75,7 +75,7 @@
 - [x] SDIFF
 - [x] SDIFFSTORE
 - [x] SINTER
-- [ ] SINTERSTORE
+- [x] SINTERSTORE
 - [x] SISMEMBER
 - [x] SMEMBERS
 - [x] SMOVE
