@@ -127,7 +127,9 @@ class MockRedis {
   async sdiffstore(destination: string, ...keys: string[]): Promise<number> {
     const diff = this.sdiffSync(...keys);
     const destinationSet = new Set<string>(diff);
-    this.data.set(destination, destinationSet);
+    if (destinationSet.size > 0) {
+      this.data.set(destination, destinationSet);
+    }
     return destinationSet.size;
   }
 

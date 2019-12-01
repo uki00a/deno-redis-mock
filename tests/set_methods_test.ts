@@ -139,6 +139,16 @@ test(async function sdiffstoreTreatsNonExistingKeyAsEmptySet() {
   assertStrictEq(actual.length, expected.length);
 });
 
+test(async function sdiffstoreDoesNotCreateDestinationKeyWhendifferenceIsEmpty() {
+  const redis = createMockRedis();
+  await redis.sadd('key1', 'one', 'two');
+  await redis.sadd('key2', 'one', 'two');
+
+  const reply = await redis.sdiffstore('destination', 'key1', 'key2');
+  assertStrictEq(reply, 0);
+  assertStrictEq(await redis.exists('destination'), 0);
+});
+
 test(async function sinter() {
   const redis = createMockRedis();
   await redis.sadd('key1', 'a', 'b', 'c', 'd');
