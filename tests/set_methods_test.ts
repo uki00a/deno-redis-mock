@@ -151,17 +151,6 @@ test(async function sinter() {
   assertEquals(actual, expected);
 });
 
-test(async function sinterReturnsEmptyArrayWhenEmptySetExists() {
-  const redis = createMockRedis();
-  await redis.sadd('key1', 'a', 'b');
-  await redis.sadd('key2', 'b');
-
-  const expected = [];
-  const actual = await redis.sinter('key1', 'key2', 'nosuchkey');
-
-  assertEquals(actual, expected);
-});
-
 test(async function sinterThrowsErrorWhenWrongTypeValueExists() {
   const redis = createMockRedis();
   await redis.sadd('key1', 'one', 'two');
@@ -171,6 +160,17 @@ test(async function sinterThrowsErrorWhenWrongTypeValueExists() {
   await assertThrowsAsync(async () => {
     await redis.sinter('key1', 'key2', 'key3');
   }, WrongTypeOperationError);
+});
+
+test(async function sinterStopComputingWhenEmptySetIsFound() {
+  const redis = createMockRedis();
+  await redis.sadd('myset', 'one', 'two');
+  await redis.rpush('mylist', 'a');
+
+  const actual = await redis.sinter('destination', 'myset', 'nosuchkey', 'mylist');
+  const expected = [];
+
+  assertEquals(actual, expected);
 });
 
 test(async function sinterstore() {
@@ -209,6 +209,25 @@ test(async function sinterstoreThrowsWhenWrongTypeValueExists() {
   await assertThrowsAsync(async () => {
     await redis.sinterstore('destination', 'myset', 'mylist');
   }, WrongTypeOperationError);
+});
+
+test(async function sinterstoreStopComputingWhenEmptySetIsFound() {
+  const redis = createMockRedis();
+  await redis.sadd('myset', 'a');
+  await redis.rpush('mylist', 'one');
+
+  const reply = await redis.sinterstore('destination', 'myset', 'nosuchkey', 'mylist');
+  assertStrictEq(reply, 0);
+});
+
+test(async function sinterstoreDoesNotCreateDestinationKeyWhenIntersectionIsEmpty() {
+  const redis = createMockRedis();
+  await redis.sadd('key1', 'one');
+  await redis.sadd('key2', 'two');
+
+  const reply = await redis.sinterstore('destination', 'key1', 'key2');
+  assertStrictEq(reply, 0);
+  assertStrictEq(await redis.exists('destination'), 0);
 });
 
 test(async function spop() {

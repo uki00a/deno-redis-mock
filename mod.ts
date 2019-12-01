@@ -138,7 +138,9 @@ class MockRedis {
 
   async sinterstore(destination: string, ...keys: string[]): Promise<number> {
     const inter = this.sinterSync(...keys);
-    this.data.set(destination, inter);
+    if (inter.size > 0) {
+      this.data.set(destination, inter);
+    }
     return inter.size;
   }
 
@@ -365,11 +367,25 @@ class MockRedis {
 
   private sinterSync(...keys: string[]): Set<string> {
     const emptySet = new Set<string>();
-    const sets = keys.map(key => this.data.has(key) ? this.data.get(key) : emptySet) as Set<string>[];
-    if (!sets.every(isSet)) {
+    const [firstValue, ...restValues] = keys.map(key => this.data.has(key) ? this.data.get(key) : emptySet);
+
+    if (!isSet(firstValue)) {
       throw new WrongTypeOperationError();
     }
-    return sets.reduce(intersection);
+
+    let result = new Set(firstValue);
+    for (const maybeSet of restValues) {
+      if (!isSet(maybeSet)) {
+        throw new WrongTypeOperationError();
+      }
+
+      result = intersection(result, maybeSet);
+
+      if (result.size === 0) {
+        return result;
+      }
+    }
+    return result;
   }
 
   private rpopSync(key: string): string {
@@ -421,3 +437,4 @@ function intersection(set1: Set<string>, set2: Set<string>): Set<string> {
   }
   return inter;
 }
+
