@@ -44,4 +44,32 @@ test(async function hgetThrowsErrorWhenTypeOfKeyIsNotHash() {
   }, WrongTypeOperationError);
 });
 
+test(async function hexistsReturnsOneWhenSpecifiedFieldExists() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field', 'foo');
+  const reply = await redis.hexists('myhash', 'field');
+  assertStrictEq(reply, 1);
+});
+
+test(async function hexistsReturnsZeroWhenSpecifiedFieldDoesNotExist() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field', 'foo');
+  const reply = await redis.hexists('myhash', 'nosuchfield');
+  assertStrictEq(reply, 0);
+});
+
+test(async function hexistsReturnsZeroWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  const reply = await redis.hexists('nosuchkey', 'field');
+  assertStrictEq(reply, 0);
+});
+
+test(async function hexistsThrowsErrorWhenTypeOfKeyIsNotHash() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.hexists('mylist', 'field');
+  }, WrongTypeOperationError);
+});
+
 runIfMain(import.meta);

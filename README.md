@@ -108,7 +108,7 @@
 - [ ] ZUNIONSTORE
 - [ ] ZSCAN
 - [ ] HDEL
-- [ ] HEXISTS
+- [x] HEXISTS
 - [x] HGET
 - [ ] HGETALL
 - [ ] HINCRBY

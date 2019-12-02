@@ -317,6 +317,16 @@ class MockRedis {
     });
   }
 
+  hexists(key: string, field: string): Promise<number> {
+    if (!this.data.has(key)) {
+      return Promise.resolve(0);
+    }
+
+    return this.withHashAt(key, hash => {
+      return Promise.resolve(hash[field] == null ? 0 : 1);
+    });
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {
