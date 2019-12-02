@@ -72,4 +72,26 @@ test(async function hexistsThrowsErrorWhenTypeOfKeyIsNotHash() {
   }, WrongTypeOperationError);
 });
 
+test(async function hlen() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field1', 'Hello');
+  await redis.hset('myhash', 'field2', 'World');
+  const reply = await redis.hlen('myhash');
+  assertStrictEq(reply, 2);
+});
+
+test(async function hlenReturnsZeroIfKeyDoesNotExist() {
+  const redis = createMockRedis();
+  const reply = await redis.hlen('nosuchkey');
+  assertStrictEq(reply, 0);
+});
+
+test(async function hlenThrowsErrorWhenTypeOfKeyIfNotHash() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.hlen('mylist');
+  }, WrongTypeOperationError);
+});
+
 runIfMain(import.meta);

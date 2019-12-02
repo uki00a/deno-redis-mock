@@ -327,6 +327,17 @@ class MockRedis {
     });
   }
 
+  hlen(key: string): Promise<number> {
+    if (!this.data.has(key)) {
+      return Promise.resolve(0);
+    }
+
+    return this.withHashAt(key, hash => {
+      const keys = Object.keys(hash);
+      return Promise.resolve(keys.length);
+    });
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {

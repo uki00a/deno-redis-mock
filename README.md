@@ -114,7 +114,7 @@
 - [ ] HINCRBY
 - [ ] HINCRBYFLOAT
 - [ ] HKEYS
-- [ ] HLEN
+- [x] HLEN
 - [ ] HMGET
 - [ ] HMSET
 - [x] HSET
