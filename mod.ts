@@ -338,6 +338,16 @@ class MockRedis {
     });
   }
 
+  async hkeys(key: string): Promise<string[]> {
+    if (!this.data.has(key)) {
+      return [];
+    }
+
+    return this.withHashAt(key, hash => {
+      return Object.keys(hash);
+    });
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {
