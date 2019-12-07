@@ -107,7 +107,7 @@
 - [ ] ZSCORE
 - [ ] ZUNIONSTORE
 - [ ] ZSCAN
-- [ ] HDEL
+- [x] HDEL
 - [x] HEXISTS
 - [x] HGET
 - [x] HGETALL

@@ -66,6 +66,59 @@ test(async function hgetallThrowsErrorWhenTypeOfKeyIsNotHash() {
   }, WrongTypeOperationError);
 });
 
+test(async function hdel() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field1', 'one');
+  await redis.hset('myhash', 'field2', 'two');
+  await redis.hdel('myhash', 'field1');
+  assertEquals(await redis.hkeys('myhash'), ['field2']);
+});
+
+test(async function hdelMultipleFields() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field1', 'one');
+  await redis.hset('myhash', 'field2', 'two');
+  await redis.hset('myhash', 'field3', 'three');
+  await redis.hdel('myhash', 'field2', 'field3');
+  assertEquals(await redis.hkeys('myhash'), ['field1']);
+});
+
+test(async function hdelReturnsNumberOfRemovedFields() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field1', 'a');  
+  await redis.hset('myhash', 'field2', 'b');
+  await redis.hset('myhash', 'field3', 'c');
+  const reply = await redis.hdel('myhash', 'field1', 'nosuchfield', 'field2');
+  assertStrictEq(reply, 2);
+});
+
+test(async function hdelDeletesKeyWhenAllFieldsAreRemoved() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field1', 'a');
+  await redis.hdel('myhash', 'field1');
+  assertStrictEq(await redis.exists('myhash'), 0);
+});
+
+test(async function hdelReturnsZeroWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  const reply = await redis.hdel('nosuchkey', 'field1');
+  assertStrictEq(reply, 0);
+});
+
+test(async function hdelDoesNotCreateNewKey() {
+  const redis = createMockRedis();
+  await redis.hdel('nosuchkey', 'field1');
+  assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function hdelThrowsErrorWhenTypeOfKeyIsNotHash() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.hdel('mylist', 'one');
+  }, WrongTypeOperationError);
+});
+
 test(async function hexistsReturnsOneWhenSpecifiedFieldExists() {
   const redis = createMockRedis();
   await redis.hset('myhash', 'field', 'foo');

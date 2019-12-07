@@ -330,6 +330,18 @@ class MockRedis {
     });
   }
 
+  async hdel(key: string, ...fields: string[]): Promise<number> {
+    return this.withHashAt(key, hash => {
+      const origLength = Object.keys(hash).length;
+      fields.forEach(field => delete hash[field]);
+      const currentLength = Object.keys(hash).length;
+      if (currentLength === 0) {
+        this.data.delete(key);
+      }
+      return origLength - currentLength;
+    });
+  }
+
   hexists(key: string, field: string): Promise<number> {
     if (!this.data.has(key)) {
       return Promise.resolve(0);
