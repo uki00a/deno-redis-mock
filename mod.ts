@@ -323,6 +323,14 @@ class MockRedis {
     });
   }
 
+  async hincrby(key: string, field: string, increment: number): Promise<number> {
+    return this.withHashAt(key, hash => {
+      const value = hash[field] || '0';
+      hash[field] = this.incrementBy(value, increment);
+      return Number(hash[field]);
+    });
+  }
+
   hset(key: string, field: string, value: string): Promise<number> {
     return this.withHashAt(key, hash => {
       hash[field] = value;
@@ -497,10 +505,19 @@ class MockRedis {
       return list.length;
     });
   }
+
+  private incrementBy(value: string, increment: number): string {
+    const parsedValue = parseInt(value, 10);
+    if (isNaN(parsedValue)) {
+      throw new ValueIsNotIntegerError();
+    }
+    return String(parsedValue + increment);
+  }
 }
 
 export class WrongTypeOperationError extends Error {}
 export class IndexOutOfRangeError extends Error {}
+export class ValueIsNotIntegerError extends Error {}
 
 function isList(v: RedisValue): v is Array<string> {
   return Array.isArray(v);

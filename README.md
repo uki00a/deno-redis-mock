@@ -111,7 +111,7 @@
 - [x] HEXISTS
 - [x] HGET
 - [x] HGETALL
-- [ ] HINCRBY
+- [x] HINCRBY
 - [ ] HINCRBYFLOAT
 - [x] HKEYS
 - [x] HLEN

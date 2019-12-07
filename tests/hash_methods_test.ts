@@ -1,6 +1,6 @@
 import { runIfMain, test } from '../vendor/https/deno.land/std/testing/mod.ts';
 import { assertEquals, assertStrictEq, assertArrayContains, assertThrowsAsync } from '../vendor/https/deno.land/std/testing/asserts.ts';
-import { createMockRedis, WrongTypeOperationError } from '../mod.ts';
+import { createMockRedis, WrongTypeOperationError, ValueIsNotIntegerError } from '../mod.ts';
 
 test(async function hsethget() {
   const redis = createMockRedis();
@@ -145,6 +145,60 @@ test(async function hexistsThrowsErrorWhenTypeOfKeyIsNotHash() {
   await assertThrowsAsync(async () => {
     await redis.hexists('mylist', 'field');
   }, WrongTypeOperationError);
+});
+
+test(async function hincrby() {
+  const redis = createMockRedis();
+
+  await redis.hset('myhash', 'field', '5');
+
+  assertStrictEq(
+    await redis.hincrby('myhash', 'field', 1),
+    6
+  );
+
+  assertStrictEq(
+    await redis.hincrby('myhash', 'field', -1),
+    5
+  );
+
+  assertStrictEq(
+    await redis.hincrby('myhash', 'field', -10),
+    -5
+  );
+});
+
+test(async function hincrbySetIncrementToFieldWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+
+  await redis.hincrby('myhash', 'field1', 3);
+
+  assertStrictEq(
+    await redis.hget('myhash', 'field1'),
+    '3'
+  );
+});
+
+test(async function hincrbySetIncrementToFieldWhenFieldDoesNotExist() {
+  const redis = createMockRedis();
+
+  await redis.hset('myhash', 'field1', 'one');
+  await redis.hincrby('myhash', 'field2', 5);
+
+  assertStrictEq(
+    await redis.hget('myhash', 'field2'),
+    '5'
+  );
+});
+
+test(async function hincrbyThrowsErrorWhenSpecifiedFieldIsNotInteger() {
+  const redis = createMockRedis();
+
+  await redis.hset('myhash', 'field1', 'hello');
+
+  await assertThrowsAsync(async () => {
+    await redis.hincrby('myhash', 'field1', 5);
+  }, ValueIsNotIntegerError);
 });
 
 test(async function hlen() {
