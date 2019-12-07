@@ -44,6 +44,28 @@ test(async function hgetThrowsErrorWhenTypeOfKeyIsNotHash() {
   }, WrongTypeOperationError);
 });
 
+test(async function hgetall() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field1', 'Hello');
+  await redis.hset('myhash', 'field2', 'World');
+  const reply = await redis.hgetall('myhash');
+  assertEquals(reply, ['field1', 'Hello', 'field2', 'World']);
+});
+
+test(async function hgetallReturnsEmptyArrayWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  const reply = await redis.hgetall('nosuchkey');
+  assertEquals(reply, []);
+});
+
+test(async function hgetallThrowsErrorWhenTypeOfKeyIsNotHash() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.hgetall('mylist');
+  }, WrongTypeOperationError);
+});
+
 test(async function hexistsReturnsOneWhenSpecifiedFieldExists() {
   const redis = createMockRedis();
   await redis.hset('myhash', 'field', 'foo');

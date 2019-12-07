@@ -110,7 +110,7 @@
 - [ ] HDEL
 - [x] HEXISTS
 - [x] HGET
-- [ ] HGETALL
+- [x] HGETALL
 - [ ] HINCRBY
 - [ ] HINCRBYFLOAT
 - [x] HKEYS

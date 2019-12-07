@@ -310,6 +310,19 @@ class MockRedis {
     }
   }
 
+  async hgetall(key: string): Promise<string[]> {
+    if (!this.data.has(key)) {
+      return [];
+    }
+    return this.withHashAt(key, hash => {
+      return Object.keys(hash).reduce((reply, field) => {
+        const value = hash[field];
+        reply.push(field, value);
+        return reply;
+      }, []);
+    });
+  }
+
   hset(key: string, field: string, value: string): Promise<number> {
     return this.withHashAt(key, hash => {
       hash[field] = value;
@@ -506,4 +519,3 @@ function intersection(set1: Set<string>, set2: Set<string>): Set<string> {
   }
   return inter;
 }
-
