@@ -323,6 +323,20 @@ class MockRedis {
     });
   }
 
+  async hmget(key: string, ...fields: string[]): Promise<string[]> {
+    if (!this.data.has(key)) {
+      return fields.map(() => NIL);
+    }
+
+    return this.withHashAt(key, hash => {
+      const values = [] as string[];
+      fields.forEach(field => {
+        values.push(hash[field]);
+      });
+      return values;
+    });
+  }
+
   async hincrby(key: string, field: string, increment: number): Promise<number> {
     return this.withHashAt(key, hash => {
       const value = hash[field] || '0';

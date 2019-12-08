@@ -98,6 +98,34 @@ test(async function hgetallThrowsErrorWhenTypeOfKeyIsNotHash() {
   }, WrongTypeOperationError);
 });
 
+test(async function hmget() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field1', 'Hello');
+  await redis.hset('myhash', 'field2', 'World');
+  const reply = await redis.hmget('myhash', 'field1', 'field2', 'nofield');
+  assertEquals(reply, ['Hello', 'World', undefined]);
+});
+
+test(async function hmgetTreatsNonExistingKeyAsEmptyHash() {
+  const redis = createMockRedis();
+  const reply = await redis.hmget('nosuchkey', 'field1', 'field2');
+  assertEquals(reply, [undefined, undefined]);
+});
+
+test(async function hmgetDoesNotCreateNewKeyWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  await redis.hmget('nosuchkey', 'field1', 'field2');
+  assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function hmgetThrowsErrorWhenTypeOfKeyIsNotHash() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  assertThrowsAsync(async () => {
+    await redis.hmget('mylist', 'one');
+  }, WrongTypeOperationError);
+});
+
 test(async function hdel() {
   const redis = createMockRedis();
   await redis.hset('myhash', 'field1', 'one');
