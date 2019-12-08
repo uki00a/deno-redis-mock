@@ -118,7 +118,7 @@
 - [ ] HMGET
 - [ ] HMSET
 - [x] HSET
-- [ ] HSETNX
+- [x] HSETNX
 - [ ] HSTRLEN
 - [ ] HVALS
 - [ ] HSCAN

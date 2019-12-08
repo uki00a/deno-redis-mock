@@ -23,6 +23,38 @@ test(async function hsetThrowsErrorWhenTypeOfKeyIsNotHash() {
   }, WrongTypeOperationError);
 });
 
+test(async function hsetnx() {
+  const redis = createMockRedis();
+  await redis.hsetnx('myhash', 'field', 'hello');
+  assertStrictEq(
+    await redis.hget('myhash', 'field'),
+    'hello'
+  );
+});
+
+test(async function hsetnxHasNoEffectWhenFieldAlreadyExists() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field', 'hello');
+  await redis.hsetnx('myhash', 'field', 'world');
+  assertStrictEq(
+    await redis.hget('myhash', 'field'),
+    'hello'
+  );
+});
+
+test(async function hsetnxReturnsOneWhenNewFieldIsCreated() {
+  const redis = createMockRedis();
+  const reply = await redis.hsetnx('myhash', 'field', 'hello');
+  assertStrictEq(reply, 1);
+});
+
+test(async function hsetnxReturnsZeroWhenFieldAlreadyExists() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field', 'one');
+  const reply = await redis.hsetnx('myhash', 'field', 'two');
+  assertStrictEq(reply, 0);
+});
+
 test(async function hgetReturnsUndefinedWhenFieldDoesNotExist() {
   const redis = createMockRedis();
   await redis.hset('myhash', 'field1', 'foo');

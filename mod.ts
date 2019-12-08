@@ -346,6 +346,16 @@ class MockRedis {
     });
   }
 
+  async hsetnx(key: string, field: string, value: string): Promise<number> {
+    return this.withHashAt(key, hash => {
+      if (field in hash) {
+        return 0;
+      }
+      hash[field] = value;
+      return 1;
+    });
+  }
+
   async hdel(key: string, ...fields: string[]): Promise<number> {
     return this.withHashAt(key, hash => {
       const origLength = Object.keys(hash).length;
