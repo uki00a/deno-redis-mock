@@ -331,6 +331,14 @@ class MockRedis {
     });
   }
 
+  async hincrbyfloat(key: string, field: string, increment: number): Promise<string> {
+    return this.withHashAt(key, hash => {
+      const value = hash[field] || '0';
+      hash[field] = this.incrementByFloat(value, increment);
+      return hash[field];
+    });
+  }
+
   hset(key: string, field: string, value: string): Promise<number> {
     return this.withHashAt(key, hash => {
       hash[field] = value;
@@ -513,11 +521,20 @@ class MockRedis {
     }
     return String(parsedValue + increment);
   }
+
+  private incrementByFloat(value: string, increment: number): string {
+    const parsedValue = parseFloat(value);
+    if (isNaN(parsedValue)) {
+      throw new ValueIsNotValidFloatError();
+    }
+    return String(parsedValue + increment);
+  }
 }
 
 export class WrongTypeOperationError extends Error {}
 export class IndexOutOfRangeError extends Error {}
 export class ValueIsNotIntegerError extends Error {}
+export class ValueIsNotValidFloatError extends Error {}
 
 function isList(v: RedisValue): v is Array<string> {
   return Array.isArray(v);
