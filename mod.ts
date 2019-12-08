@@ -401,6 +401,17 @@ class MockRedis {
     });
   }
 
+  async hstrlen(key: string, field: string): Promise<number> {
+    if (!this.data.has(key)) {
+      return 0;
+    }
+
+    return this.withHashAt(key, hash => {
+      const value = hash[field] || '';
+      return value.length;
+    });
+  }
+
   async hkeys(key: string): Promise<string[]> {
     if (!this.data.has(key)) {
       return [];

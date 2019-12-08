@@ -235,6 +235,37 @@ test(async function hexistsThrowsErrorWhenTypeOfKeyIsNotHash() {
   }, WrongTypeOperationError);
 });
 
+test(async function hstrlen() {
+  const redis = createMockRedis();
+
+  await redis.hmset('myhash', 'f1', 'HelloWorld', 'f2', '99', 'f3', '-256');
+
+  assertStrictEq(await redis.hstrlen('myhash', 'f1'), 10);
+  assertStrictEq(await redis.hstrlen('myhash', 'f2'), 2);
+  assertStrictEq(await redis.hstrlen('myhash', 'f3'), 4);
+});
+
+test(async function hstrlenReturnsZeroWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  const reply = await redis.hstrlen('nosuchkey', 'nosuchfield');
+  assertStrictEq(reply, 0);
+});
+
+test(async function hstrlenReturnsZeroWhenFieldDoesNotExist() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field1', 'hello');
+  const reply = await redis.hstrlen('myhash', 'nosuchfield');
+  assertStrictEq(reply, 0);
+});
+
+test(async function hstrlenThrowsErrorWhenTypeOfKeyIsNotHash() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'hello');
+  await assertThrowsAsync(async () => {
+    await redis.hstrlen('mylist', 'hello');
+  }, WrongTypeOperationError);
+});
+
 test(async function hincrby() {
   const redis = createMockRedis();
 
