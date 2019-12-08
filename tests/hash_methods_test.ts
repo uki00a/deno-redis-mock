@@ -325,4 +325,33 @@ test(async function hkeysThrowsErrorWhenTypeOfKeyIsNotHash() {
   }, WrongTypeOperationError);
 });
 
+test(async function hvals() {
+  const redis = createMockRedis();
+  await redis.hset('myhash', 'field1', 'Hello');
+  await redis.hset('myhash', 'field2', 'World');
+  const reply = await redis.hvals('myhash');
+  assertArrayContains(reply, ['Hello', 'World']);
+  assertStrictEq(reply.length, 2);
+});
+
+test(async function hvalsReturnsEmptyArrayWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  const reply = await redis.hvals('nosuchkey');
+  assertEquals(reply, []);
+});
+
+test(async function hvalsDoesNotCreateNewKeyWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  await redis.hvals('nosuchkey');
+  assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function hvalsThrowsErrorWhenTypeOfKeyIsNotValid() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.hvals('mylist');
+  }, WrongTypeOperationError);
+});
+
 runIfMain(import.meta);

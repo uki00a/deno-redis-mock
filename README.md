@@ -120,7 +120,7 @@
 - [x] HSET
 - [x] HSETNX
 - [ ] HSTRLEN
-- [ ] HVALS
+- [x] HVALS
 - [ ] HSCAN
 - [ ] GEOADD
 - [ ] GEOADD
