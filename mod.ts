@@ -329,11 +329,7 @@ class MockRedis {
     }
 
     return this.withHashAt(key, hash => {
-      const values = [] as string[];
-      fields.forEach(field => {
-        values.push(hash[field]);
-      });
-      return values;
+      return fields.map(field => hash[field]);
     });
   }
 
