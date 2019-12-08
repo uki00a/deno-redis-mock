@@ -1,6 +1,6 @@
 import { runIfMain, test } from '../vendor/https/deno.land/std/testing/mod.ts';
 import { assertEquals, assertStrictEq, assertArrayContains, assertThrowsAsync } from '../vendor/https/deno.land/std/testing/asserts.ts';
-import { createMockRedis, WrongTypeOperationError, ValueIsNotIntegerError, ValueIsNotValidFloatError } from '../mod.ts';
+import { createMockRedis, WrongTypeOperationError, WrongNumberOfArgumentsError, ValueIsNotIntegerError, ValueIsNotValidFloatError } from '../mod.ts';
 
 test(async function hsethget() {
   const redis = createMockRedis();
@@ -124,6 +124,34 @@ test(async function hmgetThrowsErrorWhenTypeOfKeyIsNotHash() {
   assertThrowsAsync(async () => {
     await redis.hmget('mylist', 'one');
   }, WrongTypeOperationError);
+});
+
+test(async function hmset() {
+  const redis = createMockRedis();
+  await redis.hmset('myhash', 'field1', 'one', 'field2', 'two');
+  assertStrictEq(await redis.hget('myhash', 'field1'), 'one'); 
+  assertStrictEq(await redis.hget('myhash', 'field2'), 'two');
+});
+
+test(async function hmsetReturnsOK() {
+  const redis = createMockRedis();
+  const reply = await redis.hmset('myhash', 'field1', 'hello');
+  assertStrictEq(reply, 'OK');
+});
+
+test(async function hmsetThrowsErrorWhenTypeOfKeyIsNotHash() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.hmset('mylist', 'field', 'a');
+  }, WrongTypeOperationError);
+});
+
+test(async function hmsetThrowsErrorWhenNumberOfArgumentsAreWrong() {
+  const redis = createMockRedis();
+  await assertThrowsAsync(async () => {
+    await redis.hmset('myhash', 'field1', 'one', 'field2');
+  }, WrongNumberOfArgumentsError);
 });
 
 test(async function hdel() {

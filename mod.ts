@@ -349,11 +349,8 @@ class MockRedis {
     });
   }
 
-  hset(key: string, field: string, value: string): Promise<number> {
-    return this.withHashAt(key, hash => {
-      hash[field] = value;
-      return Promise.resolve(1);
-    });
+  async hset(key: string, field: string, value: string): Promise<number> {
+    return this.hsetSync(key, field, value);
   }
 
   async hsetnx(key: string, field: string, value: string): Promise<number> {
@@ -364,6 +361,11 @@ class MockRedis {
       hash[field] = value;
       return 1;
     });
+  }
+
+  async hmset(key: string, ...fields: string[]): Promise<string> {
+    this.hsetSync(key, ...fields);
+    return 'OK';
   }
 
   async hdel(key: string, ...fields: string[]): Promise<number> {
@@ -544,6 +546,21 @@ class MockRedis {
     });
   }
 
+  private hsetSync(key, ...fields: string[]): number {
+    if (isOdd(fields.length)) {
+      throw new WrongNumberOfArgumentsError();
+    }
+
+    return this.withHashAt(key, hash => {
+      for (let i = 0; i < fields.length; i += 2) {
+        const field = fields[i];
+        const value = fields[i + 1];
+        hash[field] = value;
+      }
+      return fields.length / 2;
+    });
+  }
+
   private incrementBy(value: string, increment: number): string {
     const parsedValue = parseInt(value, 10);
     if (isNaN(parsedValue)) {
@@ -565,6 +582,11 @@ export class WrongTypeOperationError extends Error {}
 export class IndexOutOfRangeError extends Error {}
 export class ValueIsNotIntegerError extends Error {}
 export class ValueIsNotValidFloatError extends Error {}
+export class WrongNumberOfArgumentsError extends Error {}
+
+function isOdd(x: number): boolean {
+  return x % 2 !== 0;
+}
 
 function isList(v: RedisValue): v is Array<string> {
   return Array.isArray(v);

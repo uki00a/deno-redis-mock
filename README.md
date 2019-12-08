@@ -116,7 +116,7 @@
 - [x] HKEYS
 - [x] HLEN
 - [x] HMGET
-- [ ] HMSET
+- [x] HMSET
 - [x] HSET
 - [x] HSETNX
 - [ ] HSTRLEN
