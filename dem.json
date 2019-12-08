@@ -4,7 +4,7 @@
     {
       "protocol": "https",
       "path": "deno.land/std",
-      "version": "v0.23.0",
+      "version": "v0.26.0",
       "files": [
         "/testing/asserts.ts",
         "/testing/mod.ts"
