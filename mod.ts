@@ -1,3 +1,5 @@
+import { ZSet } from './zset.ts';
+
 interface RedisMockOptions {
   data: Data;
 }
@@ -7,7 +9,7 @@ type Data = {
 };
 
 type RedisHash = { [field: string]: string; };
-type RedisValue = string | Set<string> | Array<string> | RedisHash;
+type RedisValue = string | Set<string> | Array<string> | RedisHash | ZSet;
 
 const NIL = undefined;
 
@@ -432,6 +434,44 @@ class MockRedis {
     });
   }
 
+  zadd(
+    key: string,
+    score: number,
+    member: string,
+    opts?: {
+      nxx?: "NX" | "XX";
+      ch?: boolean;
+      incr?: boolean;
+    }
+  ): Promise<number>;
+  zadd(
+    key: string,
+    scoreMembers: (number | string)[],
+    opts?: {
+      nxx?: "NX" | "XX";
+      ch?: boolean;
+      incr?: boolean;
+    }
+  ): Promise<number>;
+  async zadd(key: string, scoreOrScoreMembers: number | (number | string)[], memberOrOpts?: string | { nxx?: "NX" | "XX", ch?: boolean, incr?: boolean }, opts?: { nxx?: "NX" | "XX", ch?: boolean, incr?: boolean }): Promise<number> {
+    return this.withZSetAt(key, zset => {
+       if (typeof scoreOrScoreMembers === 'number') {
+         const score = scoreOrScoreMembers;
+         const member = memberOrOpts as string;
+         zset.add(score, member);
+       }
+       return Infinity;
+    });
+  }
+
+  async zcard(key: string): Promise<number> {
+    if (!this.data.has(key)) {
+      return 0;
+    }
+
+    return this.withZSetAt(key, zset => zset.card());
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {
@@ -466,6 +506,19 @@ class MockRedis {
       const hash = {} as RedisHash;
       this.data.set(key, hash);
       return proc(hash);
+    } else {
+      throw new WrongTypeOperationError("Invalid type");
+    }
+  }
+
+  private withZSetAt<T>(key: string, proc: (zset: ZSet) => T): T {
+    const maybeZSet = this.data.get(key);
+    if (isZSet(maybeZSet)) {
+      return proc(maybeZSet);
+    } else if (maybeZSet == null) {
+      const zset = new ZSet();
+      this.data.set(key, zset);
+      return proc(zset);
     } else {
       throw new WrongTypeOperationError("Invalid type");
     }
@@ -609,6 +662,10 @@ function isString(v: RedisValue): v is string {
 
 function isSet(v: RedisValue): v is Set<string> {
   return v instanceof Set;
+}
+
+function isZSet(v: RedisValue): v is ZSet {
+  return v instanceof ZSet;
 }
 
 function isHash(v: RedisValue): v is RedisHash {

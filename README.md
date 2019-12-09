@@ -85,7 +85,7 @@
 - [ ] BZPOPMIN
 - [ ] BZPOPMAX
 - [ ] ZADD
-- [ ] ZCARD
+- [x] ZCARD
 - [ ] ZCOUNT
 - [ ] ZINCRBY
 - [ ] ZINTERSTORE
