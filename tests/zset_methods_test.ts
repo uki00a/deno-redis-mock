@@ -30,4 +30,38 @@ test(async function zcardThrowsErrorWhenTypeOfKeyIsNotZSet() {
   }, WrongTypeOperationError);
 });
 
+test(async function zscore() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  const reply = await redis.zscore('myzset', 'one');
+  assertStrictEq(reply, "1");
+});
+
+test(async function zscoreReturnsNilWhenWhenMemberDoesNotExist() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'member1');
+  const reply = await redis.zscore('myzset', 'nosuchmember');
+  assertStrictEq(reply, undefined);
+});
+
+test(async function zscoreReturnsNilWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  const reply = await redis.zscore('nosuchkey', 'member1');
+  assertStrictEq(reply, undefined);
+});
+
+test(async function zscoreDoesNotCreateNewKey() {
+  const redis = createMockRedis();
+  await redis.zscore('nosuchkey', 'member1');
+  assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function zscoreThrowsErrorWhenTypeOfKeyIsNotZSet() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.zscore('mylist', 'one');
+  }, WrongTypeOperationError);
+});
+
 runIfMain(import.meta);

@@ -10,5 +10,9 @@ export class ZSet {
   card(): number {
     return this.members.size;
   }
+
+  score(member: string): number {
+    return this.scores[member];
+  }
 }
 

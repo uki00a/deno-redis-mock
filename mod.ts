@@ -472,6 +472,17 @@ class MockRedis {
     return this.withZSetAt(key, zset => zset.card());
   }
 
+  async zscore(key: string, member: string): Promise<string> {
+    if (!this.data.has(key)) {
+      return NIL;
+    }
+
+    return this.withZSetAt(key, zset => {
+      const score = zset.score(member);
+      return score === NIL ? NIL : String(score);
+    });
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {

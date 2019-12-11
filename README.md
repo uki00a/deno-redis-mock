@@ -104,7 +104,7 @@
 - [ ] ZREVRANGE
 - [ ] ZREVRANGEBYSCORE
 - [ ] ZREVRANK
-- [ ] ZSCORE
+- [x] ZSCORE
 - [ ] ZUNIONSTORE
 - [ ] ZSCAN
 - [x] HDEL
