@@ -14,5 +14,14 @@ export class ZSet {
   score(member: string): number {
     return this.scores[member];
   }
+
+  incrby(increment: number, member: string): number {
+    if (!this.members.has(member)) {
+      this.add(increment, member);
+    } else {
+      this.scores[member] += increment;
+    }
+    return this.scores[member];
+  }
 }
 

@@ -483,6 +483,13 @@ class MockRedis {
     });
   }
 
+  async zincrby(key: string, increment: number, member: string): Promise<string> {
+    return this.withZSetAt(key, zset => {
+      const newScore = zset.incrby(increment, member);
+      return String(newScore);
+    });
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {

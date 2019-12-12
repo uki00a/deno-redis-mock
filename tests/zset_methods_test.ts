@@ -64,4 +64,42 @@ test(async function zscoreThrowsErrorWhenTypeOfKeyIsNotZSet() {
   }, WrongTypeOperationError);
 });
 
+test(async function zincrby() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 5, 'one');
+  await redis.zincrby('myzset', 3, 'one');
+  const score = await redis.zscore('myzset', 'one');
+  assertStrictEq('8', score);
+});
+
+test(async function zincrbyReturnsTheNewScoreOfMember() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  const reply = await redis.zincrby('myzset', 2, 'one');
+  assertStrictEq(reply, '3');
+});
+
+test(async function zincrbyCreateNewZSetWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  await redis.zincrby('myzset', 1.5, 'member1');
+  const score = await redis.zscore('myzset', 'member1');
+  assertStrictEq(score, '1.5');
+});
+
+test(async function zincrbySetIncrementToScoreWhenMemberDoesNotExist() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 3, 'member1');
+  await redis.zincrby('myzset', 5, 'member2');
+  const score = await redis.zscore('myzset', 'member2');
+  assertStrictEq(score, '5');
+});
+
+test(async function zincrbyThrowsErrorWhenTypeOfKeyIsNotZSet() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.zincrby('mylist', 4, 'one');
+  }, WrongTypeOperationError);
+});
+
 runIfMain(import.meta);
