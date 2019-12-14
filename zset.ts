@@ -23,5 +23,22 @@ export class ZSet {
     }
     return this.scores[member];
   }
+
+  rem(...members: string[]): number {
+    const origSize = this.members.size;
+
+    members.forEach(x => {
+      this.members.delete(x);
+      delete this.scores[x];
+    });
+
+    const currentSize = this.members.size;
+    const numberOfRemovedMembers = origSize - currentSize;
+    return numberOfRemovedMembers;;
+  }
+
+  isEmpty(): boolean {
+    return this.card() === 0;
+  }
 }
 

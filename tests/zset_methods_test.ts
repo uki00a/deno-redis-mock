@@ -102,4 +102,56 @@ test(async function zincrbyThrowsErrorWhenTypeOfKeyIsNotZSet() {
   }, WrongTypeOperationError);
 });
 
+test(async function zrem() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  await redis.zrem('myzset', 'two');
+  assertStrictEq(await redis.zscore('myzset', 'two'), undefined);
+  assertStrictEq(await redis.zcard('myzset'), 2);
+});
+
+test(async function zremCanRemoveMultipleMembers() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  await redis.zrem('myzset', 'one', 'three');
+  assertStrictEq(await redis.zscore('myzset', 'one'), undefined);
+  assertStrictEq(await redis.zscore('myzset', 'three'), undefined);
+  assertStrictEq(await redis.zcard('myzset'), 1);
+});
+
+test(async function zremReturnsNumberOfRemovedMembers() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  const reply = await redis.zrem('myzset', 'one', 'four', 'three', 'five');
+  assertStrictEq(reply, 2);
+});
+
+test(async function zremDeletesKeyWhenAllMembersAreRemoved() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'member1');
+  await redis.zadd('myzset', 2, 'member2');
+  await redis.zrem('myzset', 'member1', 'member2');
+  assertStrictEq(await redis.exists('myzset'), 0);
+});
+
+test(async function zremDoesNotCreateNewKey() {
+  const redis = createMockRedis();
+  await redis.zrem('nosuchkey', 'member');
+  assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function zremThrowsErrorWhenTypeOfKeyIsNotZset() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.zrem('mylist', 'one');
+  }, WrongTypeOperationError);
+});
+
 runIfMain(import.meta);

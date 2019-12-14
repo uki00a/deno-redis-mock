@@ -490,6 +490,18 @@ class MockRedis {
     });
   }
 
+  async zrem(key: string, ...members: string[]): Promise<number> {
+    return this.withZSetAt(key, zset => {
+      const numberOfRemovedMembers = zset.rem(...members);
+
+      if (zset.isEmpty()) {
+        this.data.delete(key);
+      }
+
+      return numberOfRemovedMembers;
+    });
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {
