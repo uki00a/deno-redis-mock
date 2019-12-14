@@ -34,7 +34,7 @@ export class ZSet {
 
     const currentSize = this.members.size;
     const numberOfRemovedMembers = origSize - currentSize;
-    return numberOfRemovedMembers;;
+    return numberOfRemovedMembers;
   }
 
   isEmpty(): boolean {
