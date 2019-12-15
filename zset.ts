@@ -15,6 +15,16 @@ export class ZSet {
     return this.scores[member];
   }
 
+  rank(member: string): number {
+    const scores = unique(Object.values(this.scores)).sort((a, b) => a - b);
+    const rankByScore = scores.reduce((rankByScore, score, index) => {
+      rankByScore[score] = index;
+      return rankByScore;
+    }, {} as { [score: string]: number });
+    const score = this.scores[member];
+    return rankByScore[score];
+  }
+
   incrby(increment: number, member: string): number {
     if (!this.members.has(member)) {
       this.add(increment, member);
@@ -42,3 +52,6 @@ export class ZSet {
   }
 }
 
+function unique<T>(array: T[]): T[] {
+  return [...new Set(array)];
+}
