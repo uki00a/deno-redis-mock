@@ -491,6 +491,15 @@ class MockRedis {
     return this.withZSetAt(key, zset => zset.rank(member));
   }
 
+
+  async zrevrank(key: string, member: string): Promise<number | undefined> {
+    if (!this.data.has(key)) {
+      return NIL;
+    }
+
+    return this.withZSetAt(key, zset => zset.revrank(member));
+  }
+
   async zincrby(key: string, increment: number, member: string): Promise<string> {
     return this.withZSetAt(key, zset => {
       const newScore = zset.incrby(increment, member);

@@ -100,6 +100,43 @@ test(async function zrankThrowsErrorWhenTypeOfKeyIsNotZset() {
   }, WrongTypeOperationError);
 });
 
+test(async function zrevrank() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  const reply = await redis.zrevrank('myzset', 'one');
+  assertStrictEq(reply, 2);
+});
+
+
+test(async function zrevrankReturnsUndefinedWhenMemberDoesNotExist() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 100, 'member1');
+  const reply = await redis.zrevrank('myzset', 'nosuchmember');
+  assertStrictEq(reply, undefined);
+});
+
+test(async function zrevrankReturnsUndefinedWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  const reply = await redis.zrevrank('myzset', 'nosuchkey');
+  assertStrictEq(reply, undefined);
+});
+
+test(async function zrevrankDoesNotCreateNewKey() {
+  const redis = createMockRedis();
+  await redis.zrevrank('myzset', 'nosuchkey');
+  assertStrictEq(await redis.exists('myzset'), 0);
+});
+
+test(async function zrevrankThrowsErrorWhenTypeOfKeyIsNotZset() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.zrevrank('mylist', 'one');
+  }, WrongTypeOperationError);
+});
+
 test(async function zincrby() {
   const redis = createMockRedis();
   await redis.zadd('myzset', 5, 'one');

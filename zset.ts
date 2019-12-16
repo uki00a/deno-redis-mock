@@ -16,13 +16,11 @@ export class ZSet {
   }
 
   rank(member: string): number {
-    const scores = unique(Object.values(this.scores)).sort((a, b) => a - b);
-    const rankByScore = scores.reduce((rankByScore, score, index) => {
-      rankByScore[score] = index;
-      return rankByScore;
-    }, {} as { [score: string]: number });
-    const score = this.scores[member];
-    return rankByScore[score];
+    return this.computeRank(member, (a, b) => a - b);
+  }
+
+  revrank(member: string): number {
+    return this.computeRank(member, (a, b) => b - a);
   }
 
   incrby(increment: number, member: string): number {
@@ -49,6 +47,16 @@ export class ZSet {
 
   isEmpty(): boolean {
     return this.card() === 0;
+  }
+
+  private computeRank(member: string, scoreComparator: (a: number, b: number) => number): number {
+    const scores = unique(Object.values(this.scores)).sort(scoreComparator);
+    const rankByScore = scores.reduce((rankByScore, score, index) => {
+      rankByScore[score] = index;
+      return rankByScore;
+    }, {} as { [score: string]: number });
+    const score = this.scores[member];
+    return rankByScore[score];
   }
 }
 
