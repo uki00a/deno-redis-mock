@@ -109,7 +109,6 @@ test(async function zrevrank() {
   assertStrictEq(reply, 2);
 });
 
-
 test(async function zrevrankReturnsUndefinedWhenMemberDoesNotExist() {
   const redis = createMockRedis();
   await redis.zadd('myzset', 100, 'member1');
