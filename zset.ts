@@ -1,3 +1,5 @@
+import { range } from './helpers.ts';
+
 export class ZSet {
   private readonly members = new Set<string>();
   private readonly scores = {} as { [member: string]: number };
@@ -45,8 +47,30 @@ export class ZSet {
     return numberOfRemovedMembers;
   }
 
+  range(start: number, stop: number): string[] {
+    return range(this.sortedByScoreASC(), start, stop);
+  }
+
+  rangeWithScores(start: number, stop: number): string[] {
+    return this.range(start, stop).reduce((result, member) => {
+      result.push(member);
+      result.push(String(this.scores[member]));
+      return result;
+    }, [] as string[]);
+  }
+
   isEmpty(): boolean {
     return this.card() === 0;
+  }
+
+  private sortedByScoreASC(): string[] {
+    return Array.from(this.members).sort((a, b) => {
+      const scoreOfA = this.scores[a];
+      const scoreOfB = this.scores[b];
+      if (scoreOfA > scoreOfB) return 1;
+      else if (scoreOfA < scoreOfB) return -1;
+      else return a > b ? 1 : -1;
+    });
   }
 
   private computeRank(member: string, scoreComparator: (a: number, b: number) => number): number {

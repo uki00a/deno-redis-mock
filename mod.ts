@@ -1,4 +1,5 @@
 import { ZSet } from './zset.ts';
+import { range } from './helpers.ts';
 
 interface RedisMockOptions {
   data: Data;
@@ -279,16 +280,12 @@ class MockRedis {
     return this.withListAt(key, list => Promise.resolve(list.length));
   }
 
-  lrange(key: string, start: number, stop: number): Promise<string[]> {
+  async lrange(key: string, start: number, stop: number): Promise<string[]> {
     if (!this.data.has(key)) {
-      return Promise.resolve([]);
+      return [];
     }
 
-    return this.withListAt(key, list => {
-      const from = start < 0 ? list.length + start : start;
-      const to = stop < 0 ? list.length + stop : stop;
-      return Promise.resolve(list.slice(from, to + 1));
-    });
+    return this.withListAt(key, list => range(list, start, stop));
   }
 
   ltrim(key: string, start: number, stop: number): Promise<string> {
@@ -498,6 +495,29 @@ class MockRedis {
     }
 
     return this.withZSetAt(key, zset => zset.revrank(member));
+  }
+
+  async zrange(
+    key: string,
+    start: number,
+    stop: number,
+    opts?: {
+      withScore?: boolean;
+    }
+  ): Promise<string[]> {
+    if (!this.data.has(key)) {
+      return [];
+    }
+
+    const { withScore = false } = opts || {};
+
+    return this.withZSetAt(key, zset => {
+      if (withScore) {
+        return zset.rangeWithScores(start, stop);
+      } else {
+        return zset.range(start, stop);
+      }
+    });
   }
 
   async zincrby(key: string, increment: number, member: string): Promise<string> {
