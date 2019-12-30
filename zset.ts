@@ -48,7 +48,11 @@ export class ZSet {
   }
 
   range(start: number, stop: number): string[] {
-    return range(this.sortedByScoreASC(), start, stop);
+    return range(this.membersSortedByScoreASC(), start, stop);
+  }
+
+  revrange(start: number, stop: number): string[] {
+    return range(this.membersSortedByScoreDESC(), start, stop);
   }
 
   rangeWithScores(start: number, stop: number): string[] {
@@ -59,17 +63,35 @@ export class ZSet {
     }, [] as string[]);
   }
 
+  revrangeWithScores(start: number, stop: number): string[] {
+    return this.revrange(start, stop).reduce((result, member) => {
+      result.push(member);
+      result.push(String(this.scores[member]));
+      return result;
+    }, [] as string[]);
+  }
+
   isEmpty(): boolean {
     return this.card() === 0;
   }
 
-  private sortedByScoreASC(): string[] {
+  private membersSortedByScoreASC(): string[] {
     return Array.from(this.members).sort((a, b) => {
       const scoreOfA = this.scores[a];
       const scoreOfB = this.scores[b];
       if (scoreOfA > scoreOfB) return 1;
       else if (scoreOfA < scoreOfB) return -1;
       else return a > b ? 1 : -1;
+    });
+  }
+
+  private membersSortedByScoreDESC(): string[] {
+    return Array.from(this.members).sort((a, b) => {
+      const scoreOfA = this.scores[a];
+      const scoreOfB = this.scores[b];
+      if (scoreOfA > scoreOfB) return -1;
+      else if (scoreOfA < scoreOfB) return 11;
+      else return a > b ? -1 : 1;
     });
   }
 

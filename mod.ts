@@ -520,6 +520,29 @@ class MockRedis {
     });
   }
 
+  async zrevrange(
+    key: string,
+    start: number,
+    stop: number,
+    opts?: {
+      withScore?: boolean;
+    }
+  ): Promise<string[]> {
+    if (!this.data.has(key)) {
+      return [];
+    }
+
+    const { withScore = false } = opts || {};
+
+    return this.withZSetAt(key, zset => {
+      if (withScore) {
+        return zset.revrangeWithScores(start, stop);
+      } else {
+        return zset.revrange(start, stop);
+      }
+    });
+  }
+
   async zincrby(key: string, increment: number, member: string): Promise<string> {
     return this.withZSetAt(key, zset => {
       const newScore = zset.incrby(increment, member);

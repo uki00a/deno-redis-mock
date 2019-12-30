@@ -289,4 +289,67 @@ test(async function zrangeThrowsErrosWhenTypeOfKeyIsNotZSet() {
   }, WrongTypeOperationError);
 });
 
+test(async function zrevrange() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  assertEquals(await redis.zrevrange('myzset', 0, 1), ['three', 'two']);
+});
+
+test(async function zrevrangeWithScores() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  assertEquals(await redis.zrevrange('myzset', 0, 1, { withScore: true }), ['three', '3', 'two', '2']);
+});
+
+test(async function zrevrangeReturnsEmptyArrayWhenStartIsLargerThanLargestIndex() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  assertEquals(await redis.zrevrange('myzset', 1, 2), []);
+});
+
+test(async function zrevrangeReturnsEmptyArrayWhenStartIsGreaterThanStop() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  assertEquals(await redis.zrevrange('myzset', 1, 0), []);
+});
+
+test(async function zrevrangeTreatsStopAsEndOfZSetWhenLargerThanLargestIndex() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  assertEquals(await redis.zrevrange('myzset', 0, 4), ['two', 'one']);
+});
+
+test(async function zrevrangeHandlesNegativeIndex() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  assertEquals(await redis.zrevrange('myzset', -2, -1), ['two', 'one']);
+});
+
+test(async function zrevrangeReturnsEmptyArrayWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  assertEquals(await redis.zrevrange('nosuchkey', 0, 1), []);
+});
+
+test(async function zrevrangeDoesNotCreateNewKey() {
+  const redis = createMockRedis();
+  await redis.zrevrange('nosuchkey', 0, 1);
+  assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function zrevrangeThrowsErrosWhenTypeOfKeyIsNotZSet() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.zrevrange('mylist', 0, 1);
+  }, WrongTypeOperationError);
+});
+
 runIfMain(import.meta);
