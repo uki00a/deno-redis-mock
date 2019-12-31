@@ -48,11 +48,11 @@ export class ZSet {
   }
 
   range(start: number, stop: number): string[] {
-    return range(this.membersSortedByScoreASC(), start, stop);
+    return range(this.sortMembersByScoreASC(Array.from(this.members)), start, stop);
   }
 
   revrange(start: number, stop: number): string[] {
-    return range(this.membersSortedByScoreDESC(), start, stop);
+    return range(this.sortMembersByScoreDESC(Array.from(this.members)), start, stop);
   }
 
   rangeWithScores(start: number, stop: number): string[] {
@@ -71,12 +71,28 @@ export class ZSet {
     }, [] as string[]);
   }
 
+  rangebyscore(min: number, max: number): string[] {
+    return this.sortMembersByScoreASC(Array.from(this.members)
+      .filter(x => {
+        const score = this.scores[x];
+        return min <= score && score <= max;
+      }));
+  }
+
+  rangebyscoreWithScores(min: number, max: number): string[] {
+    return this.rangebyscore(min, max).reduce((result, x) => {
+      result.push(x);
+      result.push(String(this.scores[x]));
+      return result;
+    }, [] as string[]);
+  }
+
   isEmpty(): boolean {
     return this.card() === 0;
   }
 
-  private membersSortedByScoreASC(): string[] {
-    return Array.from(this.members).sort((a, b) => {
+  private sortMembersByScoreASC(members: string[]): string[] {
+    return members.sort((a, b) => {
       const scoreOfA = this.scores[a];
       const scoreOfB = this.scores[b];
       if (scoreOfA > scoreOfB) return 1;
@@ -85,8 +101,8 @@ export class ZSet {
     });
   }
 
-  private membersSortedByScoreDESC(): string[] {
-    return Array.from(this.members).sort((a, b) => {
+  private sortMembersByScoreDESC(members: string[]): string[] {
+    return members.sort((a, b) => {
       const scoreOfA = this.scores[a];
       const scoreOfB = this.scores[b];
       if (scoreOfA > scoreOfB) return -1;

@@ -543,6 +543,38 @@ class MockRedis {
     });
   }
 
+  // TODO refactor this
+  async zrangebyscore(
+    key: string,
+    min: number,
+    max: number,
+    opts?: {
+      withScore?: boolean;
+      offset?: number;
+      count?: number;
+    }
+  ): Promise<string[]> {
+    if (!this.data.has(key)) {
+      return [];
+    }
+
+    const {
+      withScore = false,
+      offset = null,
+      count = null
+    } = opts || {};
+
+    return this.withZSetAt(key, zset => {
+      const result = withScore
+        ? zset.rangebyscoreWithScores(min, max)
+        : zset.rangebyscore(min, max);
+
+      return offset != null && count != null
+        ? result.slice(offset, count > 0 ? offset + count : undefined)
+        : result;
+    });
+  }
+
   async zincrby(key: string, increment: number, member: string): Promise<string> {
     return this.withZSetAt(key, zset => {
       const newScore = zset.incrby(increment, member);
