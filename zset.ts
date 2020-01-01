@@ -87,6 +87,22 @@ export class ZSet {
     }, [] as string[]);
   }
 
+  revrangebyscore(max: number, min: number): string[] {
+    return this.sortMembersByScoreDESC(Array.from(this.members)
+      .filter(x => {
+        const score = this.scores[x];
+        return max >= score && score >= min;
+      }));
+  }
+
+  revrangebyscoreWithScores(max: number, min: number): string[] {
+    return this.revrangebyscore(max, min).reduce((result, x) => {
+      result.push(x);
+      result.push(String(this.scores[x]));
+      return result;
+    }, [] as string[]);
+  }
+
   isEmpty(): boolean {
     return this.card() === 0;
   }
