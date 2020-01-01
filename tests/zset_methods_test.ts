@@ -385,6 +385,19 @@ test(async function zrangebyscoreWithLimit() {
   assertEquals(reply, ['three', 'four']);
 });
 
+test(async function zrangebyscoreWithScoresAndLimit() {
+  const redis = createMockRedis();
+  redis.zadd('myzset', 1, 'one');
+  redis.zadd('myzset', 2, 'two');
+  redis.zadd('myzset', 3, 'three');
+  redis.zadd('myzset', 4, 'four');
+  redis.zadd('myzset', 5, 'five');
+  redis.zadd('myzset', 10, 'ten');
+
+  const reply = await redis.zrangebyscore('myzset', 2, 6, { withScore: true, count: 2, offset: 1 });
+  assertEquals(reply, ['three', '3', 'four', '4']);
+});
+
 test(async function zrangebyscoreReturnsAllElementsFromOffsetWhenCountIsNegative() {
   const redis = createMockRedis();
   redis.zadd('myzset', 1, 'one');
@@ -448,6 +461,19 @@ test(async function zrevrangebyscoreWithLimit() {
 
   const reply = await redis.zrevrangebyscore('myzset', 6, 2, { count: 2, offset: 1 });
   assertEquals(reply, ['four', 'three']);
+});
+
+test(async function zrevrangebyscoreWithScoresAndLimit() {
+  const redis = createMockRedis();
+  redis.zadd('myzset', 1, 'one');
+  redis.zadd('myzset', 2, 'two');
+  redis.zadd('myzset', 3, 'three');
+  redis.zadd('myzset', 4, 'four');
+  redis.zadd('myzset', 5, 'five');
+  redis.zadd('myzset', 10, 'ten');
+
+  const reply = await redis.zrevrangebyscore('myzset', 6, 2, { withScore: true, count: 2, offset: 1 });
+  assertEquals(reply, ['four', '4', 'three', '3']);
 });
 
 test(async function zrevrangebyscoreReturnsAllElementsFromOffsetWhenCountIsNegative() {

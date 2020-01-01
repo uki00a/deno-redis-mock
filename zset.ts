@@ -1,5 +1,10 @@
 import { range } from './helpers.ts';
 
+interface LimitOptions {
+  offset?: number;
+  count?: number;
+}
+
 export class ZSet {
   private readonly members = new Set<string>();
   private readonly scores = {} as { [member: string]: number };
@@ -71,32 +76,36 @@ export class ZSet {
     }, [] as string[]);
   }
 
-  rangebyscore(min: number, max: number): string[] {
-    return this.sortMembersByScoreASC(Array.from(this.members)
+  rangebyscore(min: number, max: number, options?: LimitOptions): string[] {
+    const result = this.sortMembersByScoreASC(Array.from(this.members)
       .filter(x => {
         const score = this.scores[x];
         return min <= score && score <= max;
       }));
+
+    return applyLimitIfNeeded(result, options);
   }
 
-  rangebyscoreWithScores(min: number, max: number): string[] {
-    return this.rangebyscore(min, max).reduce((result, x) => {
+  rangebyscoreWithScores(min: number, max: number, options?: LimitOptions): string[] {
+    return this.rangebyscore(min, max, options).reduce((result, x) => {
       result.push(x);
       result.push(String(this.scores[x]));
       return result;
     }, [] as string[]);
   }
 
-  revrangebyscore(max: number, min: number): string[] {
-    return this.sortMembersByScoreDESC(Array.from(this.members)
+  revrangebyscore(max: number, min: number, options?: LimitOptions): string[] {
+    const result = this.sortMembersByScoreDESC(Array.from(this.members)
       .filter(x => {
         const score = this.scores[x];
         return max >= score && score >= min;
       }));
+
+    return applyLimitIfNeeded(result, options);
   }
 
-  revrangebyscoreWithScores(max: number, min: number): string[] {
-    return this.revrangebyscore(max, min).reduce((result, x) => {
+  revrangebyscoreWithScores(max: number, min: number, options?: LimitOptions): string[] {
+    return this.revrangebyscore(max, min, options).reduce((result, x) => {
       result.push(x);
       result.push(String(this.scores[x]));
       return result;
@@ -136,6 +145,19 @@ export class ZSet {
     const score = this.scores[member];
     return rankByScore[score];
   }
+}
+
+function applyLimitIfNeeded(values: string[], options?: LimitOptions) {
+  if (options && options.offset != null && options.count != null) {
+    return applyLimit(values, options);
+  } else {
+    return values;
+  }
+}
+
+function applyLimit(values: string[], options: LimitOptions): string[] {
+  const { offset, count } = options;
+  return values.slice(offset, count > 0 ? offset + count : undefined)
 }
 
 function unique<T>(array: T[]): T[] {

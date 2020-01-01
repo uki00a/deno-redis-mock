@@ -543,7 +543,6 @@ class MockRedis {
     });
   }
 
-  // TODO refactor this
   async zrangebyscore(
     key: string,
     min: number,
@@ -558,20 +557,14 @@ class MockRedis {
       return [];
     }
 
-    const {
-      withScore = false,
-      offset = null,
-      count = null
-    } = opts || {};
+    const { withScore = false } = opts || {};
 
     return this.withZSetAt(key, zset => {
-      const result = withScore
-        ? zset.rangebyscoreWithScores(min, max)
-        : zset.rangebyscore(min, max);
-
-      return offset != null && count != null
-        ? result.slice(offset, count > 0 ? offset + count : undefined)
-        : result;
+      if (withScore) {
+        return zset.rangebyscoreWithScores(min, max, opts);
+      } else {
+        return zset.rangebyscore(min, max, opts);
+      }
     });
   }
 
@@ -579,7 +572,7 @@ class MockRedis {
     key: string,
     max: number,
     min: number,
-    ops?: {
+    opts?: {
       withScore?: boolean;
       offset?: number;
       count?: number;
@@ -589,20 +582,14 @@ class MockRedis {
       return [];
     }
 
-    const {
-      withScore = false,
-      offset = null,
-      count = null
-    } = ops || {};
+    const { withScore = false } = opts || {};
 
     return this.withZSetAt(key, zset => {
-      const result = withScore
-        ? zset.revrangebyscoreWithScores(max, min)
-        : zset.revrangebyscore(max, min);
-
-      return offset != null && count != null
-        ? result.slice(offset, count > 0 ? offset + count : undefined)
-        : result;
+      if (withScore) {
+        return zset.revrangebyscoreWithScores(max, min, opts);
+      } else {
+        return zset.revrangebyscore(max, min, opts);
+      }
     });
   }
 
