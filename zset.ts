@@ -147,7 +147,7 @@ export class ZSet {
   }
 }
 
-function applyLimitIfNeeded(values: string[], options?: LimitOptions) {
+function applyLimitIfNeeded(values: string[], options?: LimitOptions): string[] {
   if (options && options.offset != null && options.count != null) {
     return applyLimit(values, options);
   } else {
