@@ -1,5 +1,5 @@
 import { ZSet } from './zset.ts';
-import { range } from './helpers.ts';
+import { range, isEmpty, addSeconds, sleep, maxDate } from './helpers.ts';
 
 interface RedisMockOptions {
   data: Data;
@@ -610,6 +610,42 @@ class MockRedis {
 
       return numberOfRemovedMembers;
     });
+  }
+
+  async bzpopmin(key: string | string[], timeout: number): Promise<string[]> {
+    const keys = Array.isArray(key) ? key : [key];
+    const blockUntil = timeout === 0
+      ? maxDate()
+      : addSeconds(new Date(), timeout);
+    const interval = 16;
+
+    const loop = async (): Promise<string[]> => {
+      for (const key of keys) {
+        if (!this.data.has(key)) {
+          continue;
+        }
+
+        const popped = this.withZSetAt(key, zset => zset.popmin(1));
+
+        if (isEmpty(popped)) {
+          continue;
+        }
+
+        const [member, score] = popped;
+        const reply = [key, member, score];
+        return reply;
+      }
+
+      if (new Date() >= blockUntil) {
+        return [];
+      }
+
+      await sleep(interval);
+
+      return loop();
+    }
+
+    return loop();
   }
 
   async zpopmax(key: string, count?: number): Promise<string[]> {

@@ -582,4 +582,38 @@ test(async function zpopminThrowsErrorWhenTypeOfKeyIsNotZSet() {
   }, WrongTypeOperationError);
 });
 
+test(async function bzpopmin() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myotherzset', 0, 'zero');
+  const reply = await redis.bzpopmin(['nosuchkey', 'myzset', 'myotherzset'], 0);
+  assertEquals(reply, ['myzset', 'one', '1']);
+});
+
+test(async function bzpopminWaitsUntilTimeout() {
+  const redis = createMockRedis();
+  const promise = redis.bzpopmin(['nosuchkey', 'myzset'], 1);
+  await redis.zadd('myzset', 1, 'one');
+  const reply = await promise;
+  assertEquals(reply, ['myzset', 'one', '1']);
+});
+
+test({
+  name: 'bzpopmin: returns an empty array when timedout @slow',
+  async fn() {
+    const redis = createMockRedis();
+    const reply = await redis.bzpopmin(['nosuchkey', 'nosuchkey2'], 1);
+    assertEquals(reply, []);
+  }
+});
+
+test(async function bzpopminThrowsErrorWhenWrongKindOfValueExists() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.bzpopmin(['nosuchkey', 'mylist'], 1);
+  }, WrongTypeOperationError);
+});
+
 runIfMain(import.meta);

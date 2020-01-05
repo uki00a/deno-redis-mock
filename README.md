@@ -82,7 +82,7 @@
 - [x] SPOP
 - [ ] SRANDMEMBER
 - [x] SREM
-- [ ] BZPOPMIN
+- [x] BZPOPMIN
 - [ ] BZPOPMAX
 - [ ] ZADD
 - [x] ZCARD
