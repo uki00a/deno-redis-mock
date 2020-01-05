@@ -589,6 +589,7 @@ test(async function bzpopmin() {
   await redis.zadd('myotherzset', 0, 'zero');
   const reply = await redis.bzpopmin(['nosuchkey', 'myzset', 'myotherzset'], 0);
   assertEquals(reply, ['myzset', 'one', '1']);
+  assertEquals(await redis.zrange('myzset', 0, -1), ['two']);
 });
 
 test(async function bzpopminWaitsUntilTimeout() {
@@ -597,6 +598,7 @@ test(async function bzpopminWaitsUntilTimeout() {
   await redis.zadd('myzset', 1, 'one');
   const reply = await promise;
   assertEquals(reply, ['myzset', 'one', '1']);
+  assertEquals(await redis.zrange('myzset', 0, -1), []);
 });
 
 test({
