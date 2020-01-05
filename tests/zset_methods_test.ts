@@ -508,6 +508,43 @@ test(async function zrevrangebyscoreThrowsErrorWhenTypeOfKeyIsNotZSet() {
   }, WrongTypeOperationError);
 });
 
+test(async function zpopmax() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  assertEquals(await redis.zpopmax('myzset'), ['three', '3']);
+  assertEquals(await redis.zrange('myzset', 0, -1), ['one', 'two']);
+});
+
+test(async function zpopmaxWithCount() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  assertEquals(await redis.zpopmax('myzset', 2), ['three', '3', 'two', '2']);
+  assertEquals(await redis.zrange('myzset', 0, -1), ['one']);
+});
+
+test(async function zpopmaxReturnsEmptyArrayWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  assertEquals(await redis.zpopmax('nosuchkey'), []);
+});
+
+test(async function zpopmaxDoesNotCreateNewKey() {
+  const redis = createMockRedis();
+  await redis.zpopmax('nosuchkey');
+  assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function zpopminThrowsErrorWhenTypeOfKeyIsNotZSet() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.zpopmax('mylist');
+  }, WrongTypeOperationError);
+});
+
 test(async function zpopmin() {
   const redis = createMockRedis();
   await redis.zadd('myzset', 1, 'one');

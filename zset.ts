@@ -52,15 +52,14 @@ export class ZSet {
     return numberOfRemovedMembers;
   }
 
+  popmax(count?: number): string[] {
+    const toPop = take(this.sortMembersByScoreDESC(Array.from(this.members)), count == null ? 1 : count);
+    return this.pop(toPop);
+  }
+
   popmin(count?: number): string[] {
     const toPop = take(this.sortMembersByScoreASC(Array.from(this.members)), count == null ? 1 : count);
-    const result = toPop.reduce((result, member) => {
-      result.push(member);
-      result.push(String(this.scores[member]));
-      return result;
-    }, [] as string[]);
-    this.rem(...toPop);
-    return result;
+    return this.pop(toPop);
   }
 
   range(start: number, stop: number): string[] {
@@ -155,6 +154,16 @@ export class ZSet {
     }, {} as { [score: string]: number });
     const score = this.scores[member];
     return rankByScore[score];
+  }
+
+  private pop(membersToPop: string[]): string[] {
+    const result = membersToPop.reduce((result, member) => {
+      result.push(member);
+      result.push(String(this.scores[member]));
+      return result;
+    }, [] as string[]);
+    this.rem(...membersToPop);
+    return result;
   }
 }
 

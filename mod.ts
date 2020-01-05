@@ -612,6 +612,14 @@ class MockRedis {
     });
   }
 
+  async zpopmax(key: string, count?: number): Promise<string[]> {
+    if (!this.data.has(key)) {
+      return [];
+    }
+
+    return this.withZSetAt(key, zset => zset.popmax(count));
+  }
+
   async zpopmin(key: string, count?: number): Promise<string[]> {
     if (!this.data.has(key)) {
       return [];

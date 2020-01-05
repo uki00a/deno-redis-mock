@@ -90,7 +90,7 @@
 - [x] ZINCRBY
 - [ ] ZINTERSTORE
 - [ ] ZLEXCOUNT
-- [ ] ZPOPMAX
+- [x] ZPOPMAX
 - [x] ZPOPMIN
 - [x] ZRANGE
 - [ ] ZRANGEBYLEX
