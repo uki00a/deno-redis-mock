@@ -526,6 +526,13 @@ test(async function zpopmaxWithCount() {
   assertEquals(await redis.zrange('myzset', 0, -1), ['one']);
 });
 
+test(async function zpopmaxRemovesKeyWhenAllMembersArePopped() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zpopmax('myzset');
+  assertStrictEq(await redis.exists('myzset'), 0);
+});
+
 test(async function zpopmaxReturnsEmptyArrayWhenKeyDoesNotExist() {
   const redis = createMockRedis();
   assertEquals(await redis.zpopmax('nosuchkey'), []);
@@ -561,6 +568,13 @@ test(async function zpopminWithCount() {
   await redis.zadd('myzset', 3, 'three');
   assertEquals(await redis.zpopmin('myzset', 2), ['one', '1', 'two', '2']);
   assertEquals(await redis.zrange('myzset', 0, -1), ['three']);
+});
+
+test(async function zpopminRemovesKeyWhenAllMembersArePopped() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zpopmin('myzset');
+  assertStrictEq(await redis.exists('myzset'), 0);
 });
 
 test(async function zpopminReturnsEmptyArrayWhenKeyDoesNotExist() {

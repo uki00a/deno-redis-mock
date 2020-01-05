@@ -653,7 +653,13 @@ class MockRedis {
       return [];
     }
 
-    return this.withZSetAt(key, zset => zset.popmax(count));
+    return this.withZSetAt(key, zset => {
+      const reply = zset.popmax(count);
+      if (zset.isEmpty()) {
+        this.data.delete(key);
+      }
+      return reply;
+    });
   }
 
   async zpopmin(key: string, count?: number): Promise<string[]> {
@@ -661,7 +667,13 @@ class MockRedis {
       return [];
     }
 
-    return this.withZSetAt(key, zset => zset.popmin(count));
+    return this.withZSetAt(key, zset => {
+      const reply = zset.popmin(count);
+      if (zset.isEmpty()) {
+        this.data.delete(key);
+      }
+      return reply;
+    });
   }
 
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
