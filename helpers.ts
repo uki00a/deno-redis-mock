@@ -4,3 +4,6 @@ export function range<T>(values: T[], start: number, stop: number) {
   return values.slice(from, to + 1);
 }
 
+export function take<T>(values: T[], n: number): T[] {
+  return values.slice(0, n);
+}

@@ -1,4 +1,4 @@
-import { range } from './helpers.ts';
+import { range, take } from './helpers.ts';
 
 interface LimitOptions {
   offset?: number;
@@ -50,6 +50,17 @@ export class ZSet {
     const currentSize = this.members.size;
     const numberOfRemovedMembers = origSize - currentSize;
     return numberOfRemovedMembers;
+  }
+
+  popmin(count?: number): string[] {
+    const toPop = take(this.sortMembersByScoreASC(Array.from(this.members)), count == null ? 1 : count);
+    const result = toPop.reduce((result, member) => {
+      result.push(member);
+      result.push(String(this.scores[member]));
+      return result;
+    }, [] as string[]);
+    this.rem(...toPop);
+    return result;
   }
 
   range(start: number, stop: number): string[] {

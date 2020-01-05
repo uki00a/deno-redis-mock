@@ -612,6 +612,14 @@ class MockRedis {
     });
   }
 
+  async zpopmin(key: string, count?: number): Promise<string[]> {
+    if (!this.data.has(key)) {
+      return [];
+    }
+
+    return this.withZSetAt(key, zset => zset.popmin(count));
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {
