@@ -612,40 +612,12 @@ class MockRedis {
     });
   }
 
-  async bzpopmin(key: string | string[], timeout: number): Promise<string[]> {
-    const keys = Array.isArray(key) ? key : [key];
-    const blockUntil = timeout === 0
-      ? maxDate()
-      : addSeconds(new Date(), timeout);
-    const interval = 16;
+  async bzpopmax(key: string | string[], timeout: number): Promise<string[]> {
+    return this.bzpop('popmax', key, timeout);
+  }
 
-    const loop = async (): Promise<string[]> => {
-      for (const key of keys) {
-        if (!this.data.has(key)) {
-          continue;
-        }
-
-        const popped = this.withZSetAt(key, zset => zset.popmin(1));
-
-        if (isEmpty(popped)) {
-          continue;
-        }
-
-        const [member, score] = popped;
-        const reply = [key, member, score];
-        return reply;
-      }
-
-      if (new Date() >= blockUntil) {
-        return [];
-      }
-
-      await sleep(interval);
-
-      return loop();
-    }
-
-    return loop();
+  bzpopmin(key: string | string[], timeout: number): Promise<string[]> {
+    return this.bzpop('popmin', key, timeout);
   }
 
   async zpopmax(key: string, count?: number): Promise<string[]> {
@@ -843,6 +815,42 @@ class MockRedis {
       throw new ValueIsNotValidFloatError();
     }
     return String(parsedValue + increment);
+  }
+
+  private async bzpop(command: 'popmin' | 'popmax', key: string | string[], timeout: number): Promise<string[]> {
+    const keys = Array.isArray(key) ? key : [key];
+    const blockedUntil = timeout === 0
+      ? maxDate()
+      : addSeconds(new Date(), timeout);
+    const interval = 16;
+
+    const loop = async (): Promise<string[]> => {
+      for (const key of keys) {
+        if (!this.data.has(key)) {
+          continue;
+        }
+
+        const popped = this.withZSetAt(key, zset => zset[command](1));
+
+        if (isEmpty(popped)) {
+          continue;
+        }
+
+        const [member, score] = popped;
+        const reply = [key, member, score];
+        return reply;
+      }
+
+      if (new Date() >= blockedUntil) {
+        return [];
+      }
+
+      await sleep(interval);
+
+      return loop();
+    }
+
+    return loop();
   }
 }
 

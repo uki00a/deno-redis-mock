@@ -596,6 +596,42 @@ test(async function zpopminThrowsErrorWhenTypeOfKeyIsNotZSet() {
   }, WrongTypeOperationError);
 });
 
+test(async function bzpopmax() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myotherzset', 0, 'zero');
+  const reply = await redis.bzpopmax(['nosuchkey', 'myzset', 'myotherzset'], 0);
+  assertEquals(reply, ['myzset', 'two', '2']);
+  assertEquals(await redis.zrange('myzset', 0, -1), ['one']);
+});
+
+test(async function bzpopmaxWaitsUntilTimeout() {
+  const redis = createMockRedis();
+  const promise = redis.bzpopmax(['nosuchkey', 'myzset'], 1);
+  await redis.zadd('myzset', 1, 'one');
+  const reply = await promise;
+  assertEquals(reply, ['myzset', 'one', '1']);
+  assertEquals(await redis.zrange('myzset', 0, -1), []);
+});
+
+test({
+  name: 'bzpopmax: returns an empty array when timedout @slow',
+  async fn() {
+    const redis = createMockRedis();
+    const reply = await redis.bzpopmax(['nosuchkey', 'nosuchkey2'], 1);
+    assertEquals(reply, []);
+  }
+});
+
+test(async function bzpopmaxThrowsErrorWhenWrongKindOfValueExists() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.bzpopmax(['nosuchkey', 'mylist'], 1);
+  }, WrongTypeOperationError);
+});
+
 test(async function bzpopmin() {
   const redis = createMockRedis();
   await redis.zadd('myzset', 1, 'one');
