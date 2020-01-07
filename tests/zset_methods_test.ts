@@ -668,4 +668,77 @@ test(async function bzpopminThrowsErrorWhenWrongKindOfValueExists() {
   }, WrongTypeOperationError);
 });
 
+test(async function zremrangebyrankRemovesElementsInRange() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  await redis.zadd('myzset', 4, 'four');
+  await redis.zadd('myzset', 5, 'five');
+
+  await redis.zremrangebyrank('myzset', 1, 3);
+  assertEquals(await redis.zrange('myzset', 0, -1), ['one', 'five']);
+});
+
+test(async function zremrangebyrankReturnsNumberOfRemovedElements() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  await redis.zadd('myzset', 4, 'four');
+  await redis.zadd('myzset', 5, 'five');
+
+  const reply = await redis.zremrangebyrank('myzset', 1, 3);
+  assertStrictEq(reply, 3);
+});
+
+test(async function zremrangebyrankTreatsNegativeIndexAsOffsetFromLast() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  await redis.zadd('myzset', 4, 'four');
+
+  await redis.zremrangebyrank('myzset', -3, -2);
+  assertEquals(await redis.zrange('myzset', 0, -1), ['one', 'four']);
+});
+
+test(async function zremrangebyrankDoesNothingWhenStopIsGreaterThanStart() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  await redis.zadd('myzset', 4, 'four');
+
+  const reply = await redis.zremrangebyrank('myzset', 3, 1);
+  assertStrictEq(reply, 0);
+});
+
+test(async function zremrangebyrankThrowsErrorWhenTypeOfKeyIsNotZSet() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.zremrangebyrank('mylist', 0, -1);
+  }, WrongTypeOperationError);
+});
+
+test(async function zremrangebyrankReturnsZeroWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  assertStrictEq(await redis.zremrangebyrank('nosuchkey', 0, -1), 0);
+});
+
+test(async function zremrangebyrankDoesNotCreateNewKey() {
+  const redis = createMockRedis();
+  await redis.zremrangebyrank('nosuchkey', 0, -1);
+  assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function zremrangebyrankRemovesKeyWhenAllElementsAreRemoved() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zremrangebyrank('myzset', 0, -1);
+  assertStrictEq(await redis.exists('myzset'), 0);
+});
+
 runIfMain(import.meta);

@@ -62,6 +62,11 @@ export class ZSet {
     return this.pop(toPop);
   }
 
+  remrangebyrank(start: number, stop: number): number {
+    const range = this.rangebyrank(start, stop);
+    return this.rem(...range);
+  }
+
   range(start: number, stop: number): string[] {
     return range(this.sortMembersByScoreASC(Array.from(this.members)), start, stop);
   }
@@ -94,6 +99,22 @@ export class ZSet {
       }));
 
     return applyLimitIfNeeded(result, options);
+  }
+
+  private rangebyrank(start: number, stop: number): string[] {
+    const members = Array.from(this.members);
+    const rankByMember = members.reduce((rankByMember, member) => {
+      rankByMember[member] = this.rank(member);
+      return rankByMember;
+    }, {} as { [member: string]: number });
+
+    start = start < 0 ? members.length + start : start;
+    stop = stop < 0 ? members.length + stop : stop;
+
+    return members.filter(x => {
+      const rank = rankByMember[x];
+      return start <= rank && rank <= stop;
+    });
   }
 
   rangebyscoreWithScores(min: number, max: number, options?: LimitOptions): string[] {

@@ -648,6 +648,16 @@ class MockRedis {
     });
   }
 
+  async zremrangebyrank(key: string, start: number, stop: number): Promise<number> {
+    return this.withZSetAt(key, zset => {
+      const numRemoved = zset.remrangebyrank(start, stop);
+      if (zset.isEmpty()) {
+        this.data.delete(key);
+      }
+      return numRemoved;
+    });
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {
