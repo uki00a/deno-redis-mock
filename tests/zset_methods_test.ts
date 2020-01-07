@@ -73,6 +73,16 @@ test(async function zrank() {
   assertStrictEq(reply, 2);
 });
 
+test(async function zrankRespectsLexicographicalOrder() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'a');
+  await redis.zadd('myzset', 1, 'b');
+  await redis.zadd('myzset', 1, 'c');
+  await redis.zadd('myzset', 1, 'd');
+  const reply = await redis.zrank('myzset', 'b');
+  assertStrictEq(reply, 1);
+});
+
 test(async function zrankReturnsUndefinedWhenMemberDoesNotExist() {
   const redis = createMockRedis();
   await redis.zadd('myzset', 100, 'member1');
@@ -106,6 +116,16 @@ test(async function zrevrank() {
   await redis.zadd('myzset', 2, 'two');
   await redis.zadd('myzset', 3, 'three');
   const reply = await redis.zrevrank('myzset', 'one');
+  assertStrictEq(reply, 2);
+});
+
+test(async function zrevrankRespectsLexicographicalOrder() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'a');
+  await redis.zadd('myzset', 1, 'b');
+  await redis.zadd('myzset', 1, 'c');
+  await redis.zadd('myzset', 1, 'd');
+  const reply = await redis.zrevrank('myzset', 'b');
   assertStrictEq(reply, 2);
 });
 

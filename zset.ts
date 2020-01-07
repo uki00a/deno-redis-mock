@@ -23,11 +23,15 @@ export class ZSet {
   }
 
   rank(member: string): number {
-    return this.computeRank(member, (a, b) => a - b);
+    const members = this.sortMembersByScoreASC(Array.from(this.members));
+    const rank = members.indexOf(member);
+    return rank === -1 ? undefined : rank;
   }
 
   revrank(member: string): number {
-    return this.computeRank(member, (a, b) => b - a);
+    const members = this.sortMembersByScoreDESC(Array.from(this.members));
+    const rank = members.indexOf(member);
+    return rank === -1 ? undefined : rank;
   }
 
   incrby(increment: number, member: string): number {
@@ -165,16 +169,6 @@ export class ZSet {
       else if (scoreOfA < scoreOfB) return 11;
       else return a > b ? -1 : 1;
     });
-  }
-
-  private computeRank(member: string, scoreComparator: (a: number, b: number) => number): number {
-    const scores = unique(Object.values(this.scores)).sort(scoreComparator);
-    const rankByScore = scores.reduce((rankByScore, score, index) => {
-      rankByScore[score] = index;
-      return rankByScore;
-    }, {} as { [score: string]: number });
-    const score = this.scores[member];
-    return rankByScore[score];
   }
 
   private pop(membersToPop: string[]): string[] {
