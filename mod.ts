@@ -658,6 +658,20 @@ class MockRedis {
     });
   }
 
+  async zremrangebyscore(key: string, min: number, max: number): Promise<number> {
+    if (!this.data.has(key)) {
+      return 0;
+    }
+
+    return this.withZSetAt(key, zset => {
+      const numRemoved = zset.remrangebyscore(min, max);
+      if (zset.isEmpty()) {
+        this.data.delete(key);
+      }
+      return numRemoved;
+    });
+  }
+
   private withSetAt<T>(key: string, proc: (set: Set<string>) => T): T {
     const maybeSet = this.data.get(key);
     if (isSet(maybeSet)) {

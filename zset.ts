@@ -71,6 +71,11 @@ export class ZSet {
     return this.rem(...range);
   }
 
+  remrangebyscore(min: number, max: number): number {
+    const range = this.rangebyscore(min, max);
+    return this.rem(...range);
+  }
+
   range(start: number, stop: number): string[] {
     return range(this.sortMembersByScoreASC(Array.from(this.members)), start, stop);
   }

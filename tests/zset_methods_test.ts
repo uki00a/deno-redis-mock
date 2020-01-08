@@ -761,4 +761,66 @@ test(async function zremrangebyrankRemovesKeyWhenAllElementsAreRemoved() {
   assertStrictEq(await redis.exists('myzset'), 0);
 });
 
+test(async function zremrangebyscoreRemovesElementsWithScoreBetweenMinAndMax() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 5, 'three');
+  await redis.zadd('myzset', 7, 'four');
+  await redis.zadd('myzset', 10, 'five');
+
+  await redis.zremrangebyscore('myzset', 2, 8);
+  assertEquals(await redis.zrange('myzset', 0, -1), ['one', 'five']);
+});
+
+test(async function zremrangebyscoreReturnsNumberOfRemovedElements() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 5, 'three');
+  await redis.zadd('myzset', 7, 'four');
+  await redis.zadd('myzset', 10, 'five');
+
+  const reply = await redis.zremrangebyscore('myzset', 2, 8);
+  assertStrictEq(reply, 3);
+});
+
+test(async function zremrangebyscoreDoesNothingWhenMinIsGreaterThanMax() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 3, 'three');
+  await redis.zadd('myzset', 4, 'four');
+
+  const reply = await redis.zremrangebyscore('myzset', 3, 2);
+  assertStrictEq(reply, 0);
+});
+
+test(async function zremrangebyscoreThrowsErrorWhenTypeOfKeyIsNotZSet() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.zremrangebyscore('mylist', 0, -1);
+  }, WrongTypeOperationError);
+});
+
+test(async function zremrangebyscoreReturnsZeroWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  assertStrictEq(await redis.zremrangebyscore('nosuchkey', 0, 2), 0);
+});
+
+test(async function zremrangebyscoreDoesNotCreateNewKey() {
+  const redis = createMockRedis();
+  await redis.zremrangebyscore('nosuchkey', 1, 2);
+  assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function zremrangebyscoreRemovesKeyWhenAllElementsAreRemoved() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 3, 'three');
+  await redis.zremrangebyscore('myzset', 0, 4);
+  assertStrictEq(await redis.exists('myzset'), 0);
+});
+
 runIfMain(import.meta);
