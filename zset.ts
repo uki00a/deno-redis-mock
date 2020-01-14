@@ -34,6 +34,10 @@ export class ZSet {
     return rank === -1 ? undefined : rank;
   }
 
+  count(min: number, max: number): number {
+    return this.rangebyscore(min, max).length;
+  }
+
   incrby(increment: number, member: string): number {
     if (!this.members.has(member)) {
       this.add(increment, member);

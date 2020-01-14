@@ -823,4 +823,46 @@ test(async function zremrangebyscoreRemovesKeyWhenAllElementsAreRemoved() {
   assertStrictEq(await redis.exists('myzset'), 0);
 });
 
+test(async function zcountReturnsNumberOfMembersWithScoreBetweenMinAndMax() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 4, 'four');
+  await redis.zadd('myzset', 6, 'six');
+  await redis.zadd('myzset', 7, 'seven');
+  const reply = await redis.zcount('myzset', 2, 6);
+  assertStrictEq(reply, 3);
+});
+
+test(async function zcountReturnsZeroWhenMaxIsGreaterThanMin() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.zadd('myzset', 2, 'two');
+  await redis.zadd('myzset', 4, 'four');
+  await redis.zadd('myzset', 6, 'six');
+  await redis.zadd('myzset', 7, 'seven');
+  const reply = await redis.zcount('myzset', 6, 2);
+  assertStrictEq(reply, 0);
+});
+
+test(async function zcountReturnsZeroWhenKeyDoesNotExist() {
+  const redis = createMockRedis();
+  const reply = await redis.zcount('nosuchkey', 0, 3);
+  assertStrictEq(reply, 0);
+});
+
+test(async function zcountDoesNotCreateNewKey() {
+  const redis = createMockRedis();
+  await redis.zcount('nosuchkey', 0, 3);
+  await assertStrictEq(await redis.exists('nosuchkey'), 0);
+});
+
+test(async function zcountThrowsErrorWhenTypeOfKeyIsNotZSet() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.zcount('mylist', 0, 2);
+  }, WrongTypeOperationError);
+});
+
 runIfMain(import.meta);

@@ -497,6 +497,14 @@ class MockRedis {
     return this.withZSetAt(key, zset => zset.revrank(member));
   }
 
+  async zcount(key: string, min: number, max: number): Promise<number> {
+    if (!this.data.has(key)) {
+      return 0;
+    }
+
+    return this.withZSetAt(key, zset => zset.count(min, max));
+  }
+
   async zrange(
     key: string,
     start: number,
