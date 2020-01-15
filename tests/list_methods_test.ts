@@ -75,6 +75,41 @@ test(async function rpushx() {
   assertStrictEq(await redis.exists('myotherlist'), 0);
 });
 
+test(async function blpopPopsElementFromFirstNonEmptyList() {
+  const redis = createMockRedis();
+  await redis.rpush('mylist', 'one');
+  await redis.rpush('mylist', 'two');
+  await redis.rpush('myotherlist', 'hello');
+  assertEquals(await redis.blpop(['nosuchkey', 'mylist', 'myotherlist'], 1), ['mylist', 'one']);
+  assertEquals(await redis.lrange('mylist', 0, -1), ['two']);
+});
+
+test(async function blpopWaitsUntilTimeout() {
+  const redis = createMockRedis();
+  const promise = redis.blpop(['nosuchkey', 'mylist'], 2);
+  await redis.rpush('mylist', 'hello');
+  const reply = await promise;
+  assertEquals(reply, ['mylist', 'hello']);
+});
+
+test({
+  name: 'blpop: returns an empty array when timedout @slow',
+  async fn() {
+    const redis = createMockRedis();
+    const reply = await redis.blpop(['nosuchkey', 'nosuchkey2'], 1);
+    assertEquals(reply, []);
+  }
+});
+
+test(async function blpopThrowsErrorWhenWrongKindOfValueExists() {
+  const redis = createMockRedis();
+  await redis.zadd('myzset', 1, 'one');
+  await redis.rpush('mylist', 'one');
+  await assertThrowsAsync(async () => {
+    await redis.blpop(['myzset', 'mylist'], 3);
+  }, WrongTypeOperationError);
+});
+
 test(async function lpop() {
   const redis = createMockRedis();
 

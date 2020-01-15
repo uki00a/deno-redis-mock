@@ -53,7 +53,7 @@
 - [ ] SETNX
 - [ ] SETRANGE
 - [ ] STRLEN
-- [ ] BLPOP
+- [x] BLPOP
 - [ ] BRPOP
 - [ ] BRPOPLPUSH
 - [x] LINDEX

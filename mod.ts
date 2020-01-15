@@ -214,17 +214,19 @@ class MockRedis {
     return this.rpush(key, value);
   }
 
-  lpop(key: string): Promise<string> {
-    if (!this.data.has(key)) {
-      return Promise.resolve(NIL);
-    }
-    return this.withListAt(key, list => {
-      const element = list.shift();
-      if (list.length === 0) {
-        this.data.delete(key);
-      }
-      return Promise.resolve(element)
+  async blpop(key: string | string[], timeout: number): Promise<string[]> {
+    return bpop<string, string[]>({
+      data: this.data,
+      keyOrKeys: key,
+      timeout,
+      pop: key => this.lpopSync(key),
+      shouldUnblock: element => element != NIL,
+      makeReply: (key, element) => [key, element]
     });
+  }
+
+  async lpop(key: string): Promise<string> {
+    return this.lpopSync(key);
   }
 
   rpop(key: string): Promise<string> {
@@ -732,6 +734,19 @@ class MockRedis {
     }
   }
 
+  private lpopSync(key: string): string {
+    if (!this.data.has(key)) {
+      return NIL;
+    }
+    return this.withListAt(key, list => {
+      const element = list.shift();
+      if (list.length === 0) {
+        this.data.delete(key);
+      }
+      return element;
+    });
+  }
+
   private spopSync(key: string): string {
     return this.withSetAt(key, set => {
       const members = Array.from(set);
@@ -850,39 +865,14 @@ class MockRedis {
   }
 
   private async bzpop(command: 'popmin' | 'popmax', key: string | string[], timeout: number): Promise<string[]> {
-    const keys = Array.isArray(key) ? key : [key];
-    const blockedUntil = timeout === 0
-      ? maxDate()
-      : addSeconds(new Date(), timeout);
-    const interval = 16;
-
-    const loop = async (): Promise<string[]> => {
-      for (const key of keys) {
-        if (!this.data.has(key)) {
-          continue;
-        }
-
-        const popped = this.withZSetAt(key, zset => zset[command](1));
-
-        if (isEmpty(popped)) {
-          continue;
-        }
-
-        const [member, score] = popped;
-        const reply = [key, member, score];
-        return reply;
-      }
-
-      if (new Date() >= blockedUntil) {
-        return [];
-      }
-
-      await sleep(interval);
-
-      return loop();
-    }
-
-    return loop();
+    return bpop<string[], string[]>({
+      data: this.data,
+      keyOrKeys: key,
+      timeout,
+      pop: key => this.withZSetAt(key, zset => zset[command](1)),
+      shouldUnblock: popped => !isEmpty(popped),
+      makeReply: (key, popped) => [key, ...popped]
+    });
   }
 }
 
@@ -928,4 +918,54 @@ function intersection(set1: Set<string>, set2: Set<string>): Set<string> {
     }
   }
   return inter;
+}
+
+interface BPopOptions<TPopped, TReply extends unknown[]> {
+  data: Map<string, RedisValue>;
+  keyOrKeys: string | string[];
+  timeout: number;
+  pop: (key: string) => TPopped;
+  shouldUnblock: (popped: TPopped) => boolean;
+  makeReply: (key: string, popped: TPopped) => TReply;
+}
+
+function bpop<TPopped, TReply extends unknown[]>(options: BPopOptions<TPopped, TReply>): Promise<TReply> {
+  const {
+    keyOrKeys,
+    timeout,
+    data,
+    pop,
+    shouldUnblock,
+    makeReply,
+  } = options;
+  const keys = Array.isArray(keyOrKeys) ? keyOrKeys : [keyOrKeys];
+  const blockedUntil = timeout === 0
+    ? maxDate()
+    : addSeconds(new Date(), timeout);
+  const interval = 16;
+
+  const loop = async (): Promise<TReply> => {
+    for (const key of keys) {
+      if (!data.has(key)) {
+        continue;
+      }
+
+      const popped = pop(key);
+      if (!shouldUnblock(popped)) {
+        continue;
+      }
+
+      return makeReply(key, popped);
+    }
+
+    if (new Date() >= blockedUntil) {
+      return [] as TReply;
+    }
+
+    await sleep(interval);
+
+    return loop();
+  };
+
+  return loop();
 }
