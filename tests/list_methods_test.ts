@@ -1,6 +1,7 @@
-import { runIfMain, test } from '../vendor/https/deno.land/std/testing/mod.ts';
 import { assertStrictEq, assertArrayContains, assertEquals, assertThrowsAsync } from '../vendor/https/deno.land/std/testing/asserts.ts';
 import { createMockRedis, IndexOutOfRangeError, WrongTypeOperationError } from '../mod.ts';
+
+const { test } = Deno;
 
 test(async function lindex() {
   const redis = createMockRedis();
@@ -381,4 +382,3 @@ test(async function linsertWhenPivotDoesNotExist() {
   assertEquals(await redis.lrange('mylist', 0, -1), ['one', 'two']);
 });
 
-runIfMain(import.meta);

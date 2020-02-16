@@ -1,6 +1,7 @@
-import { runIfMain, test } from '../vendor/https/deno.land/std/testing/mod.ts';
 import { assertEquals, assertStrictEq, assertArrayContains, assertThrowsAsync } from '../vendor/https/deno.land/std/testing/asserts.ts';
 import { createMockRedis, WrongTypeOperationError } from '../mod.ts';
+
+const { test } = Deno;
 
 test(async function sismember() {
   const redis = createMockRedis();
@@ -388,4 +389,3 @@ test(async function smoveThrowsErrorWhenDestinationIsNotSet() {
   }, WrongTypeOperationError);
 });
 
-runIfMain(import.meta);

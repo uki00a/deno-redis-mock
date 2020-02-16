@@ -1,6 +1,6 @@
-import { runIfMain, test } from '../vendor/https/deno.land/std/testing/mod.ts';
 import { assertStrictEq } from '../vendor/https/deno.land/std/testing/asserts.ts';
 import { createMockRedis } from '../mod.ts';
+const { test } = Deno;
 
 test(async function exists() {
   const redis = createMockRedis();
@@ -39,4 +39,3 @@ test(async function del() {
   }
 });
 
-runIfMain(import.meta);

@@ -1,7 +1,7 @@
-import { runIfMain, test } from '../vendor/https/deno.land/std/testing/mod.ts';
 import { assertStrictEq } from '../vendor/https/deno.land/std/testing/asserts.ts';
 import { createMockRedis } from '../mod.ts';
 
+const { test } = Deno;
 
 test(async function get() {
   const redis = createMockRedis({
@@ -20,4 +20,3 @@ test(async function get() {
   }
 });
 
-runIfMain(import.meta);
