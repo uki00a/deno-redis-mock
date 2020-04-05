@@ -20,7 +20,7 @@ export function addSeconds(date: Date, seconds: number): Date {
 
 export function sleep(milliseconds: number): Promise<void> {
   return new Promise<void>(resolve => {
-    setTimeout(resolve, milliseconds);
+    setTimeout(() => resolve(), milliseconds);
   });
 }
 

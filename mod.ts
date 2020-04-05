@@ -10,9 +10,10 @@ type Data = {
 };
 
 type RedisHash = { [field: string]: string; };
+type NIL = undefined;
 type RedisValue = string | Set<string> | Array<string> | RedisHash | ZSet;
 
-const NIL = undefined;
+const NIL: NIL = undefined;
 
 export function createMockRedis(options?: RedisMockOptions) {
   return new MockRedis(options);
@@ -49,11 +50,12 @@ class MockRedis {
     return Promise.resolve(keys.filter(key => this.data.has(key)).length);
   }
 
-  get(key: string): Promise<string> {
+  get(key: string): Promise<string | NIL> {
     const s = this.data.get(key);
     if (isString(s)) {
       return Promise.resolve(s);
     }
+    return Promise.resolve(NIL);
   }
 
   sadd(key: string, ...members: string[]): Promise<number> {
@@ -150,9 +152,9 @@ class MockRedis {
     return inter.size;
   }
 
-  spop(key: string): Promise<string>;
+  spop(key: string): Promise<string | NIL>;
   spop(key: string, count: number): Promise<string[]>;
-  spop(key: string, count?: number): Promise<string | string[]> {
+  spop(key: string, count?: number): Promise<(string | NIL) | string[]> {
     if (!isSet(this.data.get(key))) {
       return Promise.resolve(count == null ? NIL : []);
     }
@@ -160,7 +162,7 @@ class MockRedis {
     return Promise.resolve(popped);
   }
 
-  lindex(key: string, index: number): Promise<string> {
+  lindex(key: string, index: number): Promise<string | NIL> {
     return this.withListAt(key, list => {
       const element = index < 0 ? list[list.length + index] : list[index];
       return Promise.resolve(element === undefined ? NIL : element);
@@ -189,7 +191,7 @@ class MockRedis {
     });
   }
 
-  lpush(key, ...values): Promise<number> {
+  lpush(key: string, ...values: string[]): Promise<number> {
     return Promise.resolve(this.lpushSync(key, ...values));
   }
 
@@ -219,25 +221,25 @@ class MockRedis {
       data: this.data,
       keyOrKeys: key,
       timeout,
-      pop: key => this.lpopSync(key),
+      pop: key => this.lpopSync(key)!,
       shouldUnblock: element => element != NIL,
       makeReply: (key, element) => [key, element]
     });
   }
 
-  async lpop(key: string): Promise<string> {
+  async lpop(key: string): Promise<string | NIL> {
     return this.lpopSync(key);
   }
 
-  rpop(key: string): Promise<string> {
+  rpop(key: string): Promise<string | NIL> {
     return Promise.resolve(this.rpopSync(key));
   }
 
-  rpoplpush(source: string, destination: string): Promise<string> {
+  rpoplpush(source: string, destination: string): Promise<string | NIL> {
     if (!this.data.has(source)) {
       return Promise.resolve(NIL);
     }
-    const toPush = this.rpopSync(source);
+    const toPush = this.rpopSync(source)!;
     this.lpushSync(destination, toPush);
     return Promise.resolve(toPush);
   }
@@ -300,7 +302,7 @@ class MockRedis {
     });
   }
 
-  async hget(key: string, field: string): Promise<string> {
+  async hget(key: string, field: string): Promise<string | NIL> {
     const hash = this.data.get(key);
     if (isHash(hash)) {
       return hash[field];
@@ -320,11 +322,11 @@ class MockRedis {
         const value = hash[field];
         reply.push(field, value);
         return reply;
-      }, []);
+      }, [] as string[]);
     });
   }
 
-  async hmget(key: string, ...fields: string[]): Promise<string[]> {
+  async hmget(key: string, ...fields: string[]): Promise<(string | NIL)[]> {
     if (!this.data.has(key)) {
       return fields.map(() => NIL);
     }
@@ -471,7 +473,7 @@ class MockRedis {
     return this.withZSetAt(key, zset => zset.card());
   }
 
-  async zscore(key: string, member: string): Promise<string> {
+  async zscore(key: string, member: string): Promise<string | NIL> {
     if (!this.data.has(key)) {
       return NIL;
     }
@@ -734,7 +736,7 @@ class MockRedis {
     }
   }
 
-  private lpopSync(key: string): string {
+  private lpopSync(key: string): string | NIL {
     if (!this.data.has(key)) {
       return NIL;
     }
@@ -813,7 +815,7 @@ class MockRedis {
     return result;
   }
 
-  private rpopSync(key: string): string {
+  private rpopSync(key: string): string | NIL {
     if (!this.data.has(key)) {
       return NIL;
     }
@@ -826,14 +828,14 @@ class MockRedis {
     });
   }
 
-  private lpushSync(key, ...values): number {
+  private lpushSync(key: string, ...values: string[]): number {
     return this.withListAt(key, list => {
       list.splice(0, 0, ...values.reverse());
       return list.length;
     });
   }
 
-  private hsetSync(key, ...fields: string[]): number {
+  private hsetSync(key: string, ...fields: string[]): number {
     if (isOdd(fields.length)) {
       throw new WrongNumberOfArgumentsError();
     }
@@ -890,19 +892,19 @@ function isList(v: RedisValue): v is Array<string> {
   return Array.isArray(v);
 }
 
-function isString(v: RedisValue): v is string {
+function isString(v?: RedisValue): v is string {
   return typeof v === 'string';
 }
 
-function isSet(v: RedisValue): v is Set<string> {
+function isSet(v?: RedisValue): v is Set<string> {
   return v instanceof Set;
 }
 
-function isZSet(v: RedisValue): v is ZSet {
+function isZSet(v?: RedisValue): v is ZSet {
   return v instanceof ZSet;
 }
 
-function isHash(v: RedisValue): v is RedisHash {
+function isHash(v?: RedisValue): v is RedisHash {
   return Object.prototype.toString.call(v) === '[object Object]';
 }
 
@@ -929,7 +931,7 @@ interface BPopOptions<TPopped, TReply extends unknown[]> {
   makeReply: (key: string, popped: TPopped) => TReply;
 }
 
-function bpop<TPopped, TReply extends unknown[]>(options: BPopOptions<TPopped, TReply>): Promise<TReply> {
+function bpop<TPopped, TReply extends any[]>(options: BPopOptions<TPopped, TReply>): Promise<TReply> {
   const {
     keyOrKeys,
     timeout,
@@ -959,7 +961,7 @@ function bpop<TPopped, TReply extends unknown[]>(options: BPopOptions<TPopped, T
     }
 
     if (new Date() >= blockedUntil) {
-      return [] as TReply;
+      return ([] as any[]) as TReply;
     }
 
     await sleep(interval);

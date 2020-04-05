@@ -18,17 +18,17 @@ export class ZSet {
     return this.members.size;
   }
 
-  score(member: string): number {
+  score(member: string): number | undefined {
     return this.scores[member];
   }
 
-  rank(member: string): number {
+  rank(member: string): number | undefined {
     const members = this.sortMembersByScoreASC(Array.from(this.members));
     const rank = members.indexOf(member);
     return rank === -1 ? undefined : rank;
   }
 
-  revrank(member: string): number {
+  revrank(member: string): number | undefined {
     const members = this.sortMembersByScoreDESC(Array.from(this.members));
     const rank = members.indexOf(member);
     return rank === -1 ? undefined : rank;
@@ -117,7 +117,7 @@ export class ZSet {
   private rangebyrank(start: number, stop: number): string[] {
     const members = Array.from(this.members);
     const rankByMember = members.reduce((rankByMember, member) => {
-      rankByMember[member] = this.rank(member);
+      rankByMember[member] = this.rank(member)!;
       return rankByMember;
     }, {} as { [member: string]: number });
 
@@ -201,7 +201,7 @@ function applyLimitIfNeeded(values: string[], options?: LimitOptions): string[] 
 
 function applyLimit(values: string[], options: LimitOptions): string[] {
   const { offset, count } = options;
-  return values.slice(offset, count > 0 ? offset + count : undefined)
+  return values.slice(offset!, count! > 0 ? offset! + count! : undefined)
 }
 
 function unique<T>(array: T[]): T[] {

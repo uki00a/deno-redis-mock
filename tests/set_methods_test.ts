@@ -179,7 +179,7 @@ test(async function sinterStopComputingWhenEmptySetIsFound() {
   await redis.rpush('mylist', 'a');
 
   const actual = await redis.sinter('destination', 'myset', 'nosuchkey', 'mylist');
-  const expected = [];
+  const expected = [] as string[];
 
   assertEquals(actual, expected);
 });
